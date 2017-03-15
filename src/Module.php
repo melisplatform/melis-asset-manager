@@ -19,7 +19,7 @@ use Zend\Stdlib\ArrayUtils;
 class Module
 {
     private $modulePathFile = '/melis.modules.path.php';
-    private $mimePathFile = '/config/mime.config.php';
+    private $mimePathFile = '/../config/mime.config.php';
     
     public function onBootstrap(MvcEvent $e)
     {
@@ -40,8 +40,8 @@ class Module
     {
         $sm = $event->getParam('ServiceManager');
         
-        $assetConfigFolder = $_SERVER['DOCUMENT_ROOT'] . '/../../config'; 
-        $sitesModulesFolder = $_SERVER['DOCUMENT_ROOT'] . '/../../module/MelisSites';
+        $assetConfigFolder = $_SERVER['DOCUMENT_ROOT'] . '/../config'; 
+        $sitesModulesFolder = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites';
         
         $modulePathFile = $assetConfigFolder . $this->modulePathFile;
         if (!file_exists($modulePathFile))
@@ -92,7 +92,7 @@ class Module
     
     public function displayFile()
     {
-        $assetConfigFolder = $_SERVER['DOCUMENT_ROOT'] . '/../../config';
+        $assetConfigFolder = $_SERVER['DOCUMENT_ROOT'] . '/../config';
         $uri = $_SERVER['REQUEST_URI'];
         
         $UriWithoutParams = explode('?', $uri);
