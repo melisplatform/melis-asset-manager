@@ -96,12 +96,17 @@ class Module
         $uri = $_SERVER['REQUEST_URI'];
         
         $UriWithoutParams = explode('?', $uri);
+        
+        $UriParams = "";
         $UriWithoutParams = $UriWithoutParams[0];
+        if (!empty($UriWithoutParams[1]))
+            $UriParams = $UriWithoutParams[1];
+        
         
         // First check if asset in main public folder
         $pathFile = $_SERVER['DOCUMENT_ROOT'] . $UriWithoutParams;
         if (is_file($pathFile))
-            $this->sendDocument($pathFile);
+            $this->sendDocument($pathFile, $UriParams);
         else
         {
             // testing module public folder second
@@ -127,7 +132,7 @@ class Module
                         if ($pathFile != '')
                         {
                             if (is_file($pathFile))
-                                $this->sendDocument($pathFile);
+                                $this->sendDocument($pathFile, $UriParams);
                         }
                     }
                 }
@@ -148,19 +153,31 @@ class Module
         return 'text/plain';
     }
     
-    public function sendDocument($pathFile)
+    public function sendDocument($pathFile, $UriParams)
     {
         $mime = $this->getMimeType($pathFile);
         
         header('HTTP/1.0 200 OK');
         header("Content-Type: " . $mime);
-        header('Cache-Control: public, must-revalidate, max-age=0');
-        header('Pragma: no-cache');
-        header('Accept-Ranges: bytes');
-        header("Content-Transfer-Encoding: binary\n");
-        header('Connection: close');
         
-        readfile($pathFile);
+        $seconds_to_cache = 60 * 60 * 24; // 24hrs
+        $ts = gmdate("D, d M Y H:i:s", time() + $seconds_to_cache) . " GMT";
+        header("Expires: $ts");
+        header("Pragma: cache");
+        header("Cache-Control: max-age=$seconds_to_cache");
+        
+        // if php file, we need to eval
+        if ($mime == 'application/x-httpd-php')
+        {
+            $folderPath = explode('/', $pathFile);
+            $fileName = $folderPath[count($folderPath) - 1];
+            unset($folderPath[count($folderPath) - 1]);
+            $folderPath = implode('/', $folderPath);
+            
+            eval ( ' chdir("' . $folderPath . '"); require "' . $fileName . '";' );
+        }
+        else 
+            readfile($pathFile);
         
         die;
     }
