@@ -121,8 +121,8 @@ class Module
                     $moduleUri = $detailUri[1];
                     
                     // Need to have a path defined, and module loaded 
-                    if ((!empty($modulesPath[$moduleUri]) && in_array($moduleUri, $loadedModules)) ||
-                        strpos($modulesPath[$moduleUri], 'MelisSites') !== false)
+                    if (!empty($modulesPath[$moduleUri]) && (in_array($moduleUri, $loadedModules) ||
+                        strpos($modulesPath[$moduleUri], 'MelisSites') !== false))
                     {
                         $path = $modulesPath[$moduleUri];
     
