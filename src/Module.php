@@ -42,10 +42,30 @@ class Module
         
         $assetConfigFolder = $_SERVER['DOCUMENT_ROOT'] . '/../config'; 
         $sitesModulesFolder = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites';
-        
+
         $modulePathFile = $assetConfigFolder . $this->modulePathFile;
-        if (!file_exists($modulePathFile))
+
+        $newModules = false;
+        if (file_exists($modulePathFile))
         {
+            // checking if there's new modules not in the path list
+            $loadedModules = \MelisCore\MelisModuleManager::getModules();
+            $existingPathModules = require $assetConfigFolder . $this->modulePathFile; 
+            
+            foreach ($loadedModules as $moduleName)
+            {
+                if (empty($existingPathModules[$moduleName]))
+                {
+                    $newModules = true;
+                    break;
+                }
+            }
+        }
+        
+        
+        if (!file_exists($modulePathFile) || $newModules)
+        {
+
             $modulesService = $sm->get('MelisAssetManagerModulesService');
             
             $modulesList = array();
