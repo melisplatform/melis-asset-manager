@@ -1,1 +1,1 @@
-# melis-asset-manager
+# melis-asset-manager v2.1
