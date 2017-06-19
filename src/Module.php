@@ -77,6 +77,7 @@ class Module
             foreach ($allModules as $moduleName)
             {
                 $path = $modulesService->getModulePath($moduleName);
+                $path = str_replace($_SERVER['DOCUMENT_ROOT'] . '/..', '', $path);
                 $modulesList[$moduleName] = $path;
             }
             
@@ -84,27 +85,41 @@ class Module
             foreach ($sitesModules as $moduleName)
             {
                 $path = $sitesModulesFolder . '/' . $moduleName;
+                $path = str_replace($_SERVER['DOCUMENT_ROOT'] . '/..', '', $path);
                 $modulesList[$moduleName] = $path;
             }
             
-            $fd = fopen($modulePathFile, 'w');
-            if ($fd)
+            try 
             {
-                $modulesPathsArray = "<?php \n\n";
-                $modulesPathsArray .= "\treturn array( \n";
-    
-                $pathFile = '';
-                foreach ($modulesList as $moduleName => $modulePath)
+                $fd = @fopen($modulePathFile, 'w');
+                if ($fd)
                 {
-                    $modulesPathsArray .= "\t\t'$moduleName' => '$modulePath', \n";
+                    $modulesPathsArray = "<?php \n\n";
+                    $modulesPathsArray .= "\treturn array( \n";
+        
+                    $pathFile = '';
+                    foreach ($modulesList as $moduleName => $modulePath)
+                    {
+                        $modulesPathsArray .= "\t\t'$moduleName' => '$modulePath', \n";
+                    }
+                    $modulesPathsArray .= "\t); \n";
+                    
+                    fwrite($fd, $modulesPathsArray);
+                    fclose($fd);
+                    chmod($modulePathFile, 0777);
+                    
+                    $this->displayFile();
                 }
-                $modulesPathsArray .= "\t); \n";
-                
-                fwrite($fd, $modulesPathsArray);
-                fclose($fd);
-                chmod($modulePathFile, 0777);
-                
-                $this->displayFile();
+                else
+                {
+                    echo "Error generating file $modulePathFile : check rights";
+                    die;
+                }
+            }
+            catch (\Exception $e)
+            {
+                echo "Error generating file $modulePathFile : check rights";
+                die;
             }
         }
         
@@ -145,6 +160,12 @@ class Module
                         strpos($modulesPath[$moduleUri], 'MelisSites') !== false))
                     {
                         $path = $modulesPath[$moduleUri];
+                        
+                        if (str_replace($_SERVER['DOCUMENT_ROOT'] . '/..', '', $path) == $path)
+                        {
+                            // relative path
+                            $path = $_SERVER['DOCUMENT_ROOT'] . '/..' . $path;
+                        }
     
                         $pathFile = $path . '/public';
                         for ($i = 2; $i < count($detailUri); $i++)
