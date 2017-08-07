@@ -198,19 +198,13 @@ class Module
     public function sendDocument($pathFile, $UriParams)
     {
         $mime = $this->getMimeType($pathFile);
-        
-        header('HTTP/1.0 200 OK');
-        header("Content-Type: " . $mime);
-        
-        $seconds_to_cache = 60 * 60 * 24; // 24hrs
-        $ts = gmdate("D, d M Y H:i:s", time() + $seconds_to_cache) . " GMT";
-        header("Expires: $ts");
-        header("Pragma: cache");
-        header("Cache-Control: max-age=$seconds_to_cache");
-        
+
         // if php file, we need to eval
         if ($mime == 'application/x-httpd-php')
         {
+            header('HTTP/1.0 200 OK');
+            header("Content-Type: text/html; charset=UTF-8" . $mime);
+
             $folderPath = explode('/', $pathFile);
             $fileName = $folderPath[count($folderPath) - 1];
             unset($folderPath[count($folderPath) - 1]);
@@ -218,8 +212,19 @@ class Module
             
             eval ( ' chdir("' . $folderPath . '"); require "' . $fileName . '";' );
         }
-        else 
+        else {
+
+            header('HTTP/1.0 200 OK');
+            header("Content-Type: " . $mime);
+
+            $seconds_to_cache = 60 * 60 * 24; // 24hrs
+            $ts = gmdate("D, d M Y H:i:s", time() + $seconds_to_cache) . " GMT";
+            header("Expires: $ts");
+            header("Pragma: cache");
+            header("Cache-Control: max-age=$seconds_to_cache");
             readfile($pathFile);
+        }
+
         
         die;
     }
