@@ -15,7 +15,12 @@ use Zend\ModuleManager\ModuleManager;
 use Zend\ModuleManager\ModuleEvent;
 use Zend\Stdlib\ArrayUtils;
 
- 
+/**
+ * Class Module
+ * @package MelisAssetManager
+ * @require melis-core
+ */
+
 class Module
 {
     private $modulePathFile = '/melis.modules.path.php';
