@@ -35,7 +35,7 @@ MelisAssetManager will also attempt to find the requested elements in the main p
 
 * **Melis Technology** - [www.melistechnology.com](https://www.melistechnology.com/)
 
-See also the list of [contributors](https://github.com/melisplatform/melis-calendar/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/melisplatform/melis-asset-manager/contributors) who participated in this project.
 
 
 ## License
