@@ -32,7 +32,7 @@
     "ext-json": "*",
     "ext-pdo_mysql": "*",
     "ext-mcrypt": "*",
-    "melisplatform/melis-core": "dev-develop",
+    "melisplatform/melis-core": "~2.2.7",
     "justinrainbow/json-schema": "5.2.1"
   },
   "autoload": {
