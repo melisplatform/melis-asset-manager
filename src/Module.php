@@ -18,7 +18,6 @@ use Zend\Stdlib\ArrayUtils;
 /**
  * Class Module
  * @package MelisAssetManager
- * @require melis-core
  */
 
 class Module
@@ -31,6 +30,9 @@ class Module
         $eventManager        = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
+
+        $sm = $e->getApplication()->getServiceManager();
+        $this->displayFile($sm);
     }
     
     public function init(ModuleManager $manager)
@@ -38,15 +40,15 @@ class Module
         $eventManager = $manager->getEventManager();
         $eventManager->attach(ModuleEvent::EVENT_LOAD_MODULES_POST, [$this, 'onLoadModulesPost']);
 
-        $this->displayFile();
     }
     
     public function onLoadModulesPost(ModuleEvent $event)
     {
-        $sm = $event->getParam('ServiceManager');
-        
-        $assetConfigFolder = $_SERVER['DOCUMENT_ROOT'] . '/../config'; 
+        $sm                 = $event->getParam('ServiceManager');
+        $modulesService     = $sm->get('MelisAssetManagerModulesService');
+        $assetConfigFolder  = $_SERVER['DOCUMENT_ROOT'] . '/../config';
         $sitesModulesFolder = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites';
+        $allModules         = $modulesService->getAllModules();
 
         $modulePathFile = $assetConfigFolder . $this->modulePathFile;
 
@@ -54,7 +56,7 @@ class Module
         if (file_exists($modulePathFile))
         {
             // checking if there's new modules not in the path list
-            $loadedModules = \MelisCore\MelisModuleManager::getModules();
+            $loadedModules = $modulesService->getActiveModules();
             $existingPathModules = require $assetConfigFolder . $this->modulePathFile; 
             
             foreach ($loadedModules as $moduleName)
@@ -71,11 +73,7 @@ class Module
         if (!file_exists($modulePathFile) || $newModules)
         {
 
-            $modulesService = $sm->get('MelisAssetManagerModulesService');
-            
-            $modulesList = array();
-            
-            $allModules = $modulesService->getAllModules();
+            $modulesList  = array();
             $sitesModules = $modulesService->getSitesModules();
             
             // BO Activated Modules
@@ -113,7 +111,7 @@ class Module
                     fclose($fd);
                     chmod($modulePathFile, 0777);
                     
-                    $this->displayFile();
+                    $this->displayFile($sm);
                 }
                 else
                 {
@@ -130,8 +128,10 @@ class Module
         
     }
     
-    public function displayFile()
+    public function displayFile($sm)
     {
+
+        $moduleSvc =  $sm->get('MelisAssetManagerModulesService');
         $assetConfigFolder = $_SERVER['DOCUMENT_ROOT'] . '/../config';
         $uri = $_SERVER['REQUEST_URI'];
         
@@ -152,7 +152,7 @@ class Module
             // testing module public folder second
             if (file_exists($assetConfigFolder . $this->modulePathFile))
             {
-                $loadedModules = \MelisCore\MelisModuleManager::getModules();
+                $loadedModules = $moduleSvc->getAllModules();
                 $modulesPath = require $assetConfigFolder . $this->modulePathFile;
                 
                 $detailUri = explode('/', $UriWithoutParams);
