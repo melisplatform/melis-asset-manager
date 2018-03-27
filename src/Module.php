@@ -16,9 +16,25 @@ use Zend\ModuleManager\ModuleEvent;
 use Zend\Stdlib\ArrayUtils;
 
 /**
+ * Minify Classes
+ */
+$path = __DIR__ .'/../lib';
+
+
+require_once $path . '/minify/src/Minify.php';
+require_once $path . '/minify/src/CSS.php';
+require_once $path . '/minify/src/JS.php';
+require_once $path . '/minify/src/Exception.php';
+require_once $path . '/minify/src/Exceptions/BasicException.php';
+require_once $path . '/minify/src/Exceptions/FileImportException.php';
+require_once $path . '/minify/src/Exceptions/IOException.php';
+require_once $path . '/path-converter/src/ConverterInterface.php';
+require_once $path . '/path-converter/src/Converter.php';
+/**
  * Class Module
  * @package MelisAssetManager
  */
+use MatthiasMullie\Minify;
 
 class Module
 {
@@ -202,7 +218,8 @@ class Module
     
     public function sendDocument($pathFile, $UriParams)
     {
-        $mime = $this->getMimeType($pathFile);
+        $minify = (bool) $this->getConfig()['minify'];
+        $mime   = $this->getMimeType($pathFile);
 
         // if php file, we need to eval
         if ($mime == 'application/x-httpd-php')
@@ -219,6 +236,25 @@ class Module
         }
         else {
 
+            $content = file_get_contents($pathFile);
+
+            if(true === $minify) {
+                switch($mime) {
+                    case 'application/javascript':
+                        // minify javascript
+                        $minifier = new Minify\JS($content);
+                        $content = $minifier->minify();
+                        break;
+                    case 'text/css':
+                        // minify CSS
+                        $minifier = new Minify\CSS($content);
+                        $content = $minifier->minify();
+                        break;
+                }
+            }
+
+
+
             header('HTTP/1.0 200 OK');
             header("Content-Type: " . $mime);
 
@@ -227,7 +263,9 @@ class Module
             header("Expires: $ts");
             header("Pragma: cache");
             header("Cache-Control: max-age=$seconds_to_cache");
-            readfile($pathFile);
+
+            print $content;
+
         }
 
         

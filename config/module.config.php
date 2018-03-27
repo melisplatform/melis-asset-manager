@@ -29,4 +29,5 @@ return array(
     ),
     'view_manager' => array(
     ),
+    'minify' => true,
 );
