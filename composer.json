@@ -24,7 +24,9 @@
     "module"
   ],
   "extra": {
-    "module-name": "MelisAssetManager"
+    "module-name": "MelisAssetManager",
+    "melis-site": false,
+    "melis-module-category": "core"	  
   },
   "require": {
     "php": "^5.5 || ^7.0",
