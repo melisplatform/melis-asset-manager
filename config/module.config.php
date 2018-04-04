@@ -37,6 +37,7 @@ return array(
         'factories' => array(
             'MelisAssetManagerModulesService' => MelisAssetManager\Service\Factory\MelisModulesServiceFactory::class,
             'MelisAssetManagerWebPack' => MelisAssetManager\Service\Factory\MelisWebPackServiceFactory::class,
+            'MelisConfig' => MelisAssetManager\Service\Factory\MelisConfigServiceFactory::class,
         ),
     ),
     'controllers' => array(

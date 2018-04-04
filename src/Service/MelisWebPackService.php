@@ -2,18 +2,31 @@
 
 namespace MelisAssetManager\Service;
 
-use MelisCore\Service\MelisCoreGeneralService;
-use MelisCore\View\Helper\MelisCoreHeadPluginHelper;
-class MelisWebPackService extends MelisCoreGeneralService
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
+use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
+class MelisWebPackService implements ServiceLocatorAwareInterface
 {
 
-    const CSS           = 'styles';
-    const JS            = 'scripts';
-    const WEBPACK_FILE  = 'webpack.mix.js';
+    const CSS            	  = 'styles';
+    const JS             	  = 'scripts';
+    const WEBPACK_FILE   	  = 'webpack.mix.js';
+	const WEBPACK_STATIC_FILE = 'webpack.mix.static.js';
 
     private $cacheFiles = [];
 
 
+	public function setServiceLocator(ServiceLocatorInterface $sl)
+	{
+		$this->serviceLocator = $sl;
+		return $this;
+	}
+	
+	public function getServiceLocator()
+	{
+		return $this->serviceLocator;
+	}
+	
     /**
      * Returns the assets whether build or not
      * @return array
@@ -26,8 +39,9 @@ class MelisWebPackService extends MelisCoreGeneralService
         $cssBuild       = $resources['build']['css'];
         $jsBuild        = $resources['build']['js'];
         $webpack        = file_get_contents($this->getWebPackMixFile());
-
-
+		$webpackStatic  = file_get_contents($this->getWebPackMixStaticFile());
+		$webpack	   .= $webpackStatic;
+		
         $scripts        = $this->getMergedAssets()['js'];
         $stylesheets    = $this->getMergedAssets()['css'];
 
@@ -50,10 +64,6 @@ class MelisWebPackService extends MelisCoreGeneralService
                 return preg_replace('/\?(.+?)*/', '', $a);
             }, $stylesheets);
 
-
-            // loading of translations are not being recognized by the webpack, we have to
-            // add it manually
-            $jsBuild[] = '/melis/MelisCore/Language/getTranslations';
 
             // check each file if it has been included in the build assets, if not then stack it
             // to the the assets
@@ -125,7 +135,8 @@ class MelisWebPackService extends MelisCoreGeneralService
         $scripts     = $resources['js'];
 
 
-        $webpackSyntax =  "let mix = require('laravel-mix');" . PHP_EOL . PHP_EOL .
+        $webpackSyntax =  "require('./webpack.mix.static.js');" . PHP_EOL . PHP_EOL .
+			"let mix = require('laravel-mix');" . PHP_EOL . PHP_EOL .
             $this->getMixStyles($stylesheets, $cssBuildPath) . PHP_EOL . PHP_EOL .
             $this->getMixScripts($scripts, $jsBuildPath) . PHP_EOL;
 
@@ -250,7 +261,7 @@ class MelisWebPackService extends MelisCoreGeneralService
      */
     private function config()
     {
-        return $this->getServiceLocator()->get('MelisCoreConfig');
+        return $this->getServiceLocator()->get('MelisConfig');
     }
 
     /**
@@ -265,6 +276,19 @@ class MelisWebPackService extends MelisCoreGeneralService
 
         return $webpack;
     }
+	
+    /**
+     * Returns the path of "webpack.mix.static.js"
+     * @return string
+     */
+	public function getWebPackMixStaticFile()
+	{
+		$webPackPath = str_replace('public', '', $_SERVER['DOCUMENT_ROOT'] );
+        $file        = self::WEBPACK_STATIC_FILE;
+        $webpack     = $webPackPath.$file;
+
+        return $webpack;
+	}
 
     /**
      * Stores the files where it will be used to generate a compiled asset
@@ -290,7 +314,7 @@ class MelisWebPackService extends MelisCoreGeneralService
      */
     public function getMergedAssets()
     {
-        $plugin = new MelisCoreHeadPluginHelper($this->getServiceLocator());
+        $plugin = new MelisHeadPluginHelper($this->getServiceLocator());
         $assets = $plugin->__invoke();
 
         return $assets;
