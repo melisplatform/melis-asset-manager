@@ -159,7 +159,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      */
     public function getMixStyles($css, $path)
     {
-        return $this->buildMix(self::CSS, $css, $path.'build.css');
+        return $this->buildMix(self::CSS, $css, $path.'bundle.css');
     }
 
     /**
@@ -170,7 +170,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      */
     public function getMixScripts($js, $path)
     {
-        return $this->buildMix(self::JS, $js, $path.'build.js');
+        return $this->buildMix(self::JS, $js, $path.'bundle.js');
     }
 
     /**
