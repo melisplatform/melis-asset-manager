@@ -394,7 +394,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         $mm = $this->getServiceLocator()->get('ModuleManager');
         $loadedModules = array_keys($mm->getLoadedModules());
         $pluginModules = $this->getModulePlugins();
-        $modules = array();
+        $modules = $loadedModules;
         foreach($loadedModules as $module) {
             if(in_array($module, $pluginModules)) {
                 if(!in_array($module, $exclude)) {

@@ -10,6 +10,21 @@
 return array(
     'router' => array(
         'routes' => array(
+            'melis-backoffice' => [
+                'child_routes' => [
+                    'webpack_builder' => [
+                        'type' => 'Segment',
+                        'options' => array(
+                            'route' => 'build-webpack',
+                            'defaults' => array(
+                                'controller' => 'MelisAssetManager\Controller\WebPack',
+                                'action' => 'buildWebpack',
+                            ),
+                        ),
+                    ]
+                ]
+            ]
+
         ),
     ),
     'translator' => array(
@@ -20,14 +35,15 @@ return array(
             'translator' => 'MvcTranslator',
         ),
         'factories' => array(
-            'MelisAssetManagerModulesService' => 'MelisAssetManager\Service\Factory\MelisModulesServiceFactory',
+            'MelisAssetManagerModulesService' => MelisAssetManager\Service\Factory\MelisModulesServiceFactory::class,
+            'MelisAssetManagerWebPack' => MelisAssetManager\Service\Factory\MelisWebPackServiceFactory::class,
         ),
     ),
     'controllers' => array(
         'invokables' => array(
+            'MelisAssetManager\Controller\WebPack' => 'MelisAssetManager\Controller\WebPackController'
         ),
     ),
     'view_manager' => array(
     ),
-    'minify' => true,
 );

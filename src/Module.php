@@ -20,21 +20,11 @@ use Zend\Stdlib\ArrayUtils;
  */
 $path = __DIR__ .'/../lib';
 
-
-require_once $path . '/minify/src/Minify.php';
-require_once $path . '/minify/src/CSS.php';
-require_once $path . '/minify/src/JS.php';
-require_once $path . '/minify/src/Exception.php';
-require_once $path . '/minify/src/Exceptions/BasicException.php';
-require_once $path . '/minify/src/Exceptions/FileImportException.php';
-require_once $path . '/minify/src/Exceptions/IOException.php';
-require_once $path . '/path-converter/src/ConverterInterface.php';
-require_once $path . '/path-converter/src/Converter.php';
 /**
  * Class Module
  * @package MelisAssetManager
  */
-use MatthiasMullie\Minify;
+
 
 class Module
 {
@@ -218,7 +208,6 @@ class Module
     
     public function sendDocument($pathFile, $UriParams)
     {
-        $minify = (bool) $this->getConfig()['minify'];
         $mime   = $this->getMimeType($pathFile);
 
         // if php file, we need to eval
@@ -237,22 +226,6 @@ class Module
         else {
 
             $content = file_get_contents($pathFile);
-
-            if(true === $minify) {
-                switch($mime) {
-                    case 'application/javascript':
-                        // minify javascript
-                        $minifier = new Minify\JS($content);
-                        $content = $minifier->minify();
-                        break;
-                    case 'text/css':
-                        // minify CSS
-                        $minifier = new Minify\CSS($content);
-                        $content = $minifier->minify();
-                        break;
-                }
-            }
-
 
 
             header('HTTP/1.0 200 OK');
