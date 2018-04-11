@@ -7,6 +7,7 @@ use MelisCore\Library\MelisAppConfig;
 
 class MelisHeadPluginHelper extends AbstractHelper
 {
+
 	public $serviceManager;
 
 	public function __construct($sm)
@@ -28,12 +29,26 @@ class MelisHeadPluginHelper extends AbstractHelper
 		$jsFiles = array();
 		$cssFiles = array();
 		foreach ($appsConfig as $keyPlugin => $appConfig)
-		{	
-			$jsFiles = array_merge($jsFiles, $melisAppConfig->getItem("/$keyPlugin/ressources/js"));
-			$cssFiles = array_merge($cssFiles, $melisAppConfig->getItem("/$keyPlugin/ressources/css"));
+		{
+		    if(!in_array($keyPlugin, $this->pathExceptions())) {
+                $jsFiles = array_merge($jsFiles, $melisAppConfig->getItem("/$keyPlugin/ressources/js"));
+                $cssFiles = array_merge($cssFiles, $melisAppConfig->getItem("/$keyPlugin/ressources/css"));
+            }
+
 		}
 		
-		return array('js' => $jsFiles,
+		return array('js'  => $jsFiles,
 					 'css' => $cssFiles);
 	}
+
+	protected function pathExceptions()
+    {
+        return [
+            'meliscore_login',
+            'meliscore_lost_password',
+            'meliscore_reset_password',
+            'melis_core_setup',
+            'melis_engine_setup'
+        ];
+    }
 }
