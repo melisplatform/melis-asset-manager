@@ -224,9 +224,8 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
             $module = $fileFragments[1] ?? null;
             // check if  the first index has http or https
             if($module) {
-
-
-                $modulePath = $this->module()->getModulePath($module);
+                
+                $modulePath      = $this->module()->getModulePath($module);
 
                 if($modulePath) {
                     $modulePath = str_replace('public/../', '', $modulePath);
@@ -236,6 +235,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     $file = $modulePath . '/public/' .implode('/', $fileFragments);
 
                     if(file_exists($file)) {
+                        $file = $modulePath . '/public/' .implode('/', $fileFragments);
                         $exists = true;
                     }
                 }
