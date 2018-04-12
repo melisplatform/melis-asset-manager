@@ -207,19 +207,25 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
         foreach($files as $file) {
 
-            // remove params on URL
-            $file = preg_replace('/\?(.+?)*/', '', $file);
+            $tmpFile = $file;
 
             $this->setCachedFile($file);
+
+            // remove params on URL
+            $file = preg_replace('/\?(.+?)*/', '', $file);
 
             // get the prefix of the assets and look for its' path
             $modulePath = '';
             $exists     = false;
 
             $fileFragments = explode('/', $file);
+
             // we assume that the index "1" is the module
             $module = $fileFragments[1] ?? null;
+            // check if  the first index has http or https
             if($module) {
+
+
                 $modulePath = $this->module()->getModulePath($module, true);
 
                 if($modulePath) {
@@ -232,6 +238,13 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     if(file_exists($file)) {
                         $exists = true;
                     }
+                }
+
+            }
+            else {
+                if(preg_match('/http/', $file)) {
+                    $file = $tmpFile;
+                    $exists = true;
                 }
             }
 
