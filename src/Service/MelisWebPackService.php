@@ -226,7 +226,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
             if($module) {
 
 
-                $modulePath = $this->module()->getModulePath($module, true);
+                $modulePath = $this->module()->getModulePath($module);
 
                 if($modulePath) {
                     $modulePath = str_replace('public/../', '', $modulePath);
