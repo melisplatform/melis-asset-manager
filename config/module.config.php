@@ -21,6 +21,16 @@ return array(
                                 'action' => 'buildWebpack',
                             ),
                         ),
+                    ],
+                    'view_assets' => [
+                        'type' => 'Segment',
+                        'options' => array(
+                            'route' => 'view-assets',
+                            'defaults' => array(
+                                'controller' => 'MelisAssetManager\Controller\WebPack',
+                                'action' => 'viewAssets',
+                            ),
+                        ),
                     ]
                 ]
             ]

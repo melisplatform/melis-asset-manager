@@ -28,10 +28,26 @@ class MelisHeadPluginHelper extends AbstractHelper
 	    
 		$jsFiles      = array();
 		$cssFiles     = array();
-		$resourcePath = true === $useBundle ? 'ressources/build' : 'ressources';
+
 		foreach ($appsConfig as $keyPlugin => $appConfig)
 		{
+            $resourcePath = true === $useBundle ? 'ressources/build' : 'ressources';
+
 		    if(!in_array($keyPlugin, $this->pathExceptions())) {
+
+                // Add 'disable_bundle' => true configuration inside "ressources/build" if you don't want to use bundled assets on a specific module
+                // check for bundle usage overrides
+                $disableBundle = false;
+
+
+                if($resourcePath == 'ressources/build') {
+                    $disableBundle = isset($melisAppConfig->getItem("/$keyPlugin/$resourcePath")['disable_bundle']) ?
+                        (bool) $melisAppConfig->getItem("/$keyPlugin/$resourcePath")['disable_bundle'] : false;
+
+                    if($disableBundle) {
+                        $resourcePath = 'ressources';
+                    }
+                }
 
                 $jsFiles = array_merge($jsFiles, $melisAppConfig->getItem("/$keyPlugin/$resourcePath/js"));
                 $cssFiles = array_merge($cssFiles, $melisAppConfig->getItem("/$keyPlugin/$resourcePath/css"));
