@@ -15,7 +15,7 @@ class MelisHeadPluginHelper extends AbstractHelper
 		$this->serviceManager = $sm;
 	}
 	
-	public function __invoke($path = '/')
+	public function __invoke($path = '/', $useBundle = false)
 	{
 		$melisAppConfig = $this->serviceManager->get('MelisConfig');
 		
@@ -26,13 +26,15 @@ class MelisHeadPluginHelper extends AbstractHelper
 	        $appsConfig = array($path => $appsConfig);
 	    }
 	    
-		$jsFiles = array();
-		$cssFiles = array();
+		$jsFiles      = array();
+		$cssFiles     = array();
+		$resourcePath = true === $useBundle ? 'ressources/build' : 'ressources';
 		foreach ($appsConfig as $keyPlugin => $appConfig)
 		{
 		    if(!in_array($keyPlugin, $this->pathExceptions())) {
-                $jsFiles = array_merge($jsFiles, $melisAppConfig->getItem("/$keyPlugin/ressources/js"));
-                $cssFiles = array_merge($cssFiles, $melisAppConfig->getItem("/$keyPlugin/ressources/css"));
+
+                $jsFiles = array_merge($jsFiles, $melisAppConfig->getItem("/$keyPlugin/$resourcePath/js"));
+                $cssFiles = array_merge($cssFiles, $melisAppConfig->getItem("/$keyPlugin/$resourcePath/css"));
             }
 
 		}

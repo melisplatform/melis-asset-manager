@@ -35,14 +35,14 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     private  $cacheFiles = [];
 
     /**
-     * Setter for ServiceLOcator
-     *
+     * Setter for ServiceLocator
      * @param ServiceLocatorInterface $sl
-     * @return void
+     * @return $this
      */
     public function setServiceLocator(ServiceLocatorInterface $sl)
 	{
 		$this->serviceLocator = $sl;
+
 		return $this;
     }
 
@@ -61,38 +61,43 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 		$webpackStatic  = file_get_contents($this->getWebPackMixStaticFile());
 		$webpack	   .= $webpackStatic;
 		
-        $scripts        = $this->getMergedAssets()['js'];
-        $stylesheets    = $this->getMergedAssets()['css'];
+        $scripts        = $this->getMergedAssets($useBuildAssets)['js'];
+        $stylesheets    = $this->getMergedAssets($useBuildAssets)['css'];
 
         $assets = [
             'css' => $stylesheets,
             'js'  => $scripts
         ];
 
+        $nonBundledCss = $this->getMergedAssets()['css'];
+        $nonBundledJs  = $this->getMergedAssets()['js'];
+
+
+
         if(true === $useBuildAssets) {
 
-            $scripts    = array_map(function($a) {
+            $nonBundledJs    = array_map(function($a) {
                 // remove the URI query
                 $a = str_replace('/', '\/', $a);
                 return preg_replace('/\?(.+?)*/', '', $a);
-            }, $scripts);
+            }, $nonBundledJs);
 
-            $stylesheets = array_map(function($a) {
+            $nonBundledCss = array_map(function($a) {
                 // remove the URI query
                 $a = str_replace('/', '\/', $a);
                 return preg_replace('/\?(.+?)*/', '', $a);
-            }, $stylesheets);
+            }, $nonBundledCss);
 
 
             // check each file if it has been included in the build assets, if not then stack it
             // to the the assets
-            foreach($scripts as $script) {
+            foreach($nonBundledJs as $script) {
                 if(!preg_match("/$script/", $webpack)) {
                     $jsBuild[] = $script;
                 }
             }
 
-            foreach($stylesheets as $style) {
+            foreach($nonBundledCss as $style) {
                 if(!preg_match("/$style/", $webpack)) {
                     $cssBuild[] = $style;
                 }
@@ -107,8 +112,8 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
             }, $jsBuild);
 
             $assets = [
-                'css' => $cssBuild,
-                'js'  => $jsBuild
+                'css' => array_merge($stylesheets,  $cssBuild),
+                'js'  => array_merge($scripts,  $jsBuild),
             ];
 
         }
@@ -263,12 +268,13 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
     /**
      * Returns assets from the loaded modules
+     * @param bool $useBundle
      * @return array
      */
-    public function getMergedAssets()
+    public function getMergedAssets($useBundle = false)
     {
         $plugin = new MelisHeadPluginHelper($this->getServiceLocator());
-        $assets = $plugin->__invoke();
+        $assets = $plugin->__invoke('/', $useBundle);
 
         return $assets;
     }
@@ -318,7 +324,6 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     /**
      * Used to match in the back-office to check whether the assets has already been compiled
      * or not, if not then this will be used to merge to the assets
-     * @param $files
      * @return string
      */
     private function getCached()
