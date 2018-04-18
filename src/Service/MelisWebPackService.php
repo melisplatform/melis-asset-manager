@@ -348,4 +348,17 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
         return $webpack;
     }
 
+    /**
+     * Returns the path of "webpack.mix.static.js"
+     * @return string
+     */
+    public function getWebPackMixStaticFile()
+    {
+        $webPackPath = str_replace('public', '', $_SERVER['DOCUMENT_ROOT'] );
+        $file        = self::WEBPACK_STATIC_FILE;
+        $webpack     = $webPackPath.$file;
+
+        return $webpack;
+    }
+
 }
