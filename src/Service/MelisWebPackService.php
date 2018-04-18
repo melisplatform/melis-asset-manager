@@ -240,7 +240,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
             // remove params on URL
             $file = preg_replace('/\?(.+?)*/', '', $file);
-
+            $exists = file_exists($file) === true ? '// exists' : '// file does not exists';
             $syntax .= "\t'$file', ". PHP_EOL;
         }
 
