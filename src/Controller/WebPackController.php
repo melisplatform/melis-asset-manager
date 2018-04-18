@@ -17,6 +17,16 @@ class WebPackController extends AbstractActionController
     }
 
     /**
+     * Prints all the available assets
+     */
+    public function viewAssetsAction()
+    {
+        $assets = $this->webpack()->getAssets();
+        print_r($assets);
+        die;
+    }
+
+    /**
      * @return \MelisAssetManager\Service\MelisWebPackService
      */
     private function webpack()
