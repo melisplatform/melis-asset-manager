@@ -1,0 +1,11 @@
+<melis-asset-manager>
+	<package_info>
+		<mp_title>Melis Asset Manager</mp_title>
+		<mp_subtitle>The module that serves your module's assets.</mp_subtitle>
+		<mp_description>
+			This module is meant to deliver all assets from the activated modules of the platform.<br /> It will allow you to have a public folder in every ZF2 module to place your CSS, JS, images or anything that needs to be available. <br /> Assets only need to be called with the following syntax: /ModuleName/folder/myasset
+		</mp_description>
+		<mp_maintainers>melisplatform</mp_maintainers>
+		<mp_group>Melis Cms</mp_group>
+	</package_info>
+</melis-asset-manager>
