@@ -2,19 +2,33 @@
 
 namespace MelisAssetManager\View\Helper;
 
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\View\Helper\AbstractHelper;
 use MelisCore\Library\MelisAppConfig;
 
 class MelisHeadPluginHelper extends AbstractHelper
 {
 
+    /**
+     * @var ServiceLocatorAwareInterface
+     */
 	public $serviceManager;
 
+    /**
+     * MelisHeadPluginHelper constructor.
+     * @param $sm
+     */
 	public function __construct($sm)
 	{
 		$this->serviceManager = $sm;
 	}
-	
+
+    /**
+     * @note Add 'disable_bundle' => true configuration inside "ressources/build" if you don't want to use bundled assets on a specific module
+     * @param string $path
+     * @param bool $useBundle
+     * @return array
+     */
 	public function __invoke($path = '/', $useBundle = false)
 	{
 		$melisAppConfig = $this->serviceManager->get('MelisConfig');
@@ -35,7 +49,7 @@ class MelisHeadPluginHelper extends AbstractHelper
 
 		    if(!in_array($keyPlugin, $this->pathExceptions())) {
 
-                // Add 'disable_bundle' => true configuration inside "ressources/build" if you don't want to use bundled assets on a specific module
+
                 // check for bundle usage overrides
                 $disableBundle = false;
 
@@ -49,7 +63,7 @@ class MelisHeadPluginHelper extends AbstractHelper
                     }
                 }
 
-                $jsFiles = array_merge($jsFiles, $melisAppConfig->getItem("/$keyPlugin/$resourcePath/js"));
+                $jsFiles  = array_merge($jsFiles, $melisAppConfig->getItem("/$keyPlugin/$resourcePath/js"));
                 $cssFiles = array_merge($cssFiles, $melisAppConfig->getItem("/$keyPlugin/$resourcePath/css"));
             }
 
@@ -59,6 +73,9 @@ class MelisHeadPluginHelper extends AbstractHelper
 					 'css' => $cssFiles);
 	}
 
+    /**
+     * @return array
+     */
 	protected function pathExceptions()
     {
         return [

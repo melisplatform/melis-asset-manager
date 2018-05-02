@@ -35,6 +35,11 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     private  $cacheFiles = [];
 
     /**
+     * @var ServiceLocatorAwareInterface
+     */
+    private $serviceLocator;
+
+    /**
      * Setter for ServiceLocator
      * @param ServiceLocatorInterface $sl
      * @return $this
@@ -227,16 +232,32 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
     }
 
+    /**
+     * @param $css
+     * @param $path
+     * @return string
+     */
     private function getMixStyles($css, $path)
     {
         return $this->createMixMethod(self::CSS, $css, $path);
     }
-    
+
+    /**
+     * @param $js
+     * @param $path
+     * @return string
+     */
     private function getMixScripts($js, $path)
     {
         return $this->createMixMethod(self::JS, $js, $path);
     }
 
+    /**
+     * @param $type
+     * @param $files
+     * @param $outputPath
+     * @return string
+     */
     private function createMixMethod($type, $files, $outputPath)
     {
         $syntax  = "mix.$type([" . PHP_EOL;
@@ -328,7 +349,6 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      */
     private function getCached()
     {
-
         $syntax = "// Cached assets do not modify\r\nlet cache = [" . PHP_EOL;
 
         foreach($this->getCachedFiles() as $file) {
