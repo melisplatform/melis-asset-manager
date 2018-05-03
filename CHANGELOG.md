@@ -1,14 +1,16 @@
 # Changelog
-All notable changes to this project will be documented in this file.  
+All notable changes to this project will be documented in this file.
 
-## [Unreleased]  
-### Added  
- 
-### Changed  
-* composer.json and dependencies  
+## [Unreleased]
+### Added
+* Added ability to generate webpack mix file
+* Added ability to retrieve all webpack bundles
 
-### Removed  
+### Changed
+* composer.json and dependencies
+
+### Removed
 
 
-## [2.2.0] - 2017-08-08
+## [2.4.0] - 2018-05-03
 Latest stable version
