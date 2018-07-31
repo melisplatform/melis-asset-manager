@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file.
 ### Added  
  
 ### Changed  
-* composer.json and dependencies  
+* composer.json and dependencies
+* moved the creation of webpack.mix files in public folder
 
 ### Removed  
 
