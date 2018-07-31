@@ -9,6 +9,6 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 
-## [v2.4.0] - 2018-05-03
-* Added ability to generate webpack mix file
-* Added ability to retrieve all webpack bundles
+## [v2.5.0] - 2018-07-31
+* composer.json and dependencies
+* moved the creation of webpack.mix files in public folder
