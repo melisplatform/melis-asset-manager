@@ -167,7 +167,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset))
-                        $modules[$module]['css'][] = str_replace("/$module", $modulePath.$ds.'public', $asset);
+                        $modules[$module]['css'][] = preg_replace("/\/$module\//", $ds.$modulePath.$ds.'public', $asset, 1);
                 }
             }
         }
@@ -194,7 +194,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset))
-                        $modules[$module]['js'][] = str_replace("/$module", $modulePath.$ds.'public', $asset);
+                        $modules[$module]['js'][] = preg_replace("/\/$module\//", $ds.$modulePath.$ds.'public', $asset, 1);
                 }
             }
         }
