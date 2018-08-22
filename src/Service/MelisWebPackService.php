@@ -160,7 +160,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     // check if the build directory for CSS exists
                     $cssBuildPath = $modulePath.$ds.$buildPath.$ds.'css';
                     if (!file_exists($cssBuildPath))
-                        mkdir($cssBuildPath, 0777, true);
+                        @mkdir($cssBuildPath, 0777, true);
 
                     // make sure that the file has the right access
                     @chmod($cssBuildPath, 0777);
@@ -187,7 +187,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     // check if the build directory for JS exists
                     $jsBuildPath = $modulePath.$ds.$buildPath.$ds.'js';
                     if (!file_exists($jsBuildPath))
-                        mkdir($jsBuildPath, 0777, true);
+                        @mkdir($jsBuildPath, 0777, true);
 
                     // make sure that the file has the right access
                     @chmod($jsBuildPath, 0777);
@@ -223,7 +223,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
         $webpack     = $this->getWebPackMixFile();
 
         file_put_contents($webpack, $mixScript);
-        chmod($webpack, 0777);
+        @chmod($webpack, 0777);
 
         $runWebPackPath = str_replace('public/', '', $webPackPath);
 
