@@ -140,7 +140,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
         $buildPath = $this->config()->getItem('meliscore/ressources');
         $buildPath = $buildPath['build']['build_path'];
-        $ds        = DIRECTORY_SEPARATOR;
+        $ds        = '/';
         
 
         // get the module details via their assets info
