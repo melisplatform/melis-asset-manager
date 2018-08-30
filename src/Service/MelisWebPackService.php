@@ -60,10 +60,16 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
         $assets         = [];
         $resources      = $this->config()->getItem('meliscore/ressources');
         $useBuildAssets = (bool) $resources['build']['use_build_assets'];
+
         $cssBuild       = $resources['build']['css'];
         $jsBuild        = $resources['build']['js'];
         $webpack        = file_get_contents($this->getWebPackMixFile());
-		$webpackStatic  = file_get_contents($this->getWebPackMixStaticFile());
+		$webpackStatic  = '';
+
+		if (file_exists($this->getWebPackMixStaticFile())) {
+            $webpackStatic = file_get_contents($this->getWebPackMixStaticFile());
+        }
+
 		$webpack	   .= $webpackStatic;
 		
         $scripts        = $this->getMergedAssets($useBuildAssets)['js'];
@@ -79,7 +85,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
 
 
-        if (true === $useBuildAssets) {
+        if ($useBuildAssets) {
 
             $nonBundledJs    = array_map(function($a) {
                 // remove the URI query
@@ -96,15 +102,15 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
             // check each file if it has been included in the build assets, if not then stack it
             // to the the assets
-            foreach ($nonBundledJs as $script) {
+            foreach ($nonBundledJs as $key => $script) {
                 if (!preg_match("/$script/", $webpack)) {
-                    $jsBuild[] = $script;
+                    $jsBuild[$script] = $script;
                 }
             }
 
             foreach ($nonBundledCss as $style) {
                 if (!preg_match("/$style/", $webpack)) {
-                    $cssBuild[] = $style;
+                    $cssBuild[$style] = $style;
                 }
             }
 
@@ -116,10 +122,10 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                 return str_replace('\/', '/', $a);
             }, $jsBuild);
 
-            $assets = [
-                'css' => array_merge($stylesheets,  $cssBuild),
-                'js'  => array_merge($scripts,  $jsBuild),
-            ];
+//            $assets = [
+//                'css' => array_merge($stylesheets,  $cssBuild),
+//                'js'  => array_merge($scripts,  $jsBuild),
+//            ];
 
         }
 
