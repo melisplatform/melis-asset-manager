@@ -60,10 +60,16 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
         $assets         = [];
         $resources      = $this->config()->getItem('meliscore/ressources');
         $useBuildAssets = (bool) $resources['build']['use_build_assets'];
+
         $cssBuild       = $resources['build']['css'];
         $jsBuild        = $resources['build']['js'];
         $webpack        = file_get_contents($this->getWebPackMixFile());
-		$webpackStatic  = file_get_contents($this->getWebPackMixStaticFile());
+		$webpackStatic  = '';
+
+		if (file_exists($this->getWebPackMixStaticFile())) {
+            $webpackStatic = file_get_contents($this->getWebPackMixStaticFile());
+        }
+
 		$webpack	   .= $webpackStatic;
 		
         $scripts        = $this->getMergedAssets($useBuildAssets)['js'];
@@ -79,7 +85,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
 
 
-        if (true === $useBuildAssets) {
+        if ($useBuildAssets) {
 
             $nonBundledJs    = array_map(function($a) {
                 // remove the URI query
@@ -96,15 +102,15 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
             // check each file if it has been included in the build assets, if not then stack it
             // to the the assets
-            foreach ($nonBundledJs as $script) {
+            foreach ($nonBundledJs as $key => $script) {
                 if (!preg_match("/$script/", $webpack)) {
-                    $jsBuild[] = $script;
+                    $jsBuild[$script] = $script;
                 }
             }
 
             foreach ($nonBundledCss as $style) {
                 if (!preg_match("/$style/", $webpack)) {
-                    $cssBuild[] = $style;
+                    $cssBuild[$style] = $style;
                 }
             }
 
@@ -116,10 +122,10 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                 return str_replace('\/', '/', $a);
             }, $jsBuild);
 
-            $assets = [
-                'css' => array_merge($stylesheets,  $cssBuild),
-                'js'  => array_merge($scripts,  $jsBuild),
-            ];
+//            $assets = [
+//                'css' => array_merge($stylesheets,  $cssBuild),
+//                'js'  => array_merge($scripts,  $jsBuild),
+//            ];
 
         }
 
@@ -140,7 +146,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
         $buildPath = $this->config()->getItem('meliscore/ressources');
         $buildPath = $buildPath['build']['build_path'];
-        $ds        = DIRECTORY_SEPARATOR;
+        $ds        = '/';
         
 
         // get the module details via their assets info
@@ -160,14 +166,14 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     // check if the build directory for CSS exists
                     $cssBuildPath = $modulePath.$ds.$buildPath.$ds.'css';
                     if (!file_exists($cssBuildPath))
-                        mkdir($cssBuildPath, 0777, true);
+                        @mkdir($cssBuildPath, 0777, true);
 
                     // make sure that the file has the right access
                     @chmod($cssBuildPath, 0777);
                     
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset))
-                        $modules[$module]['css'][] = str_replace("/$module", $modulePath.$ds.'public', $asset);
+                        $modules[$module]['css'][] = preg_replace("/\/$module\//", $modulePath.$ds.'public'.$ds, $asset, 1);
                 }
             }
         }
@@ -187,14 +193,14 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                     // check if the build directory for JS exists
                     $jsBuildPath = $modulePath.$ds.$buildPath.$ds.'js';
                     if (!file_exists($jsBuildPath))
-                        mkdir($jsBuildPath, 0777, true);
+                        @mkdir($jsBuildPath, 0777, true);
 
                     // make sure that the file has the right access
                     @chmod($jsBuildPath, 0777);
                     
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset))
-                        $modules[$module]['js'][] = str_replace("/$module", $modulePath.$ds.'public', $asset);
+                        $modules[$module]['js'][] = preg_replace("/\/$module\//", $modulePath.$ds.'public'.$ds, $asset, 1);
                 }
             }
         }
@@ -223,7 +229,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
         $webpack     = $this->getWebPackMixFile();
 
         file_put_contents($webpack, $mixScript);
-        chmod($webpack, 0777);
+        @chmod($webpack, 0777);
 
         $runWebPackPath = str_replace('public/', '', $webPackPath);
 

@@ -100,7 +100,7 @@ class Module
             
             try 
             {
-                $fd = @fopen($modulePathFile, 'w');
+                $fd = fopen($modulePathFile, 'w');
                 if ($fd)
                 {
                     $modulesPathsArray = "<?php \n\n";
@@ -121,14 +121,14 @@ class Module
                 }
                 else
                 {
-                    echo "Error generating file $modulePathFile : check rights";
-                    die;
+                    /*echo "Error generating file $modulePathFile : check rights";
+                    die;*/
                 }
             }
             catch (\Exception $e)
             {
-                echo "Error generating file $modulePathFile : check rights";
-                die;
+                /*echo "Error generating file $modulePathFile : check rights";
+                die;*/
             }
         }
         

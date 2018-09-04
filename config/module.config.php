@@ -55,6 +55,16 @@ return array(
             'MelisAssetManager\Controller\WebPack' => 'MelisAssetManager\Controller\WebPackController'
         ),
     ),
+    'view_helpers' => [
+        'invokables' => [
+            'melisCoreIcon' => \MelisAssetManager\View\Helper\MelisCoreIconHelper::class,
+            'melisCmsIcon' => \MelisAssetManager\View\Helper\MelisCmsIconHelper::class,
+            'melisMarketingIcon' => \MelisAssetManager\View\Helper\MelisMarketingIconHelper::class,
+            'melisCommerceIcon' => \MelisAssetManager\View\Helper\MelisCommerceIconHelper::class,
+            'melisOthersIcon' => \MelisAssetManager\View\Helper\MelisOthersIconHelper::class,
+            'melisCustomIcon' => \MelisAssetManager\View\Helper\MelisCustomIconHelper::class,
+        ]
+    ],
     'view_manager' => array(
     ),
 );
