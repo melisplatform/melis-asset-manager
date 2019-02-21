@@ -17,7 +17,7 @@ use Zend\Config\Writer\PhpArray;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-class MelisCoreModulesService implements ServiceLocatorAwareInterface
+class MelisModulesService implements ServiceLocatorAwareInterface
 {
     /** @var \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator */
     public $serviceLocator;

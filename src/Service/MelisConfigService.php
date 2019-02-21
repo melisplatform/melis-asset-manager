@@ -6,7 +6,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\ArrayUtils;
 
-class MelisCoreConfigService implements MelisCoreConfigServiceInterface, ServiceLocatorAwareInterface
+class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorAwareInterface
 {
     public $serviceLocator;
     public $appConfig;
