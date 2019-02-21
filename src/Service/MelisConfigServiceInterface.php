@@ -1,10 +1,10 @@
 <?php
-	
+
 namespace MelisAssetManager\Service;
 
-interface MelisConfigServiceInterface 
+interface MelisConfigServiceInterface
 {
-	public function getItem($pathString = '');
-	
-	public function prefixIdsKeysRec($array, $prefix);
+    public function getItem($pathString = '');
+
+    public function prefixIdsKeysRec($array, $prefix);
 }

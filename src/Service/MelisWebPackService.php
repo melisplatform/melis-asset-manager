@@ -2,9 +2,10 @@
 
 namespace MelisAssetManager\Service;
 
+use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
-use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
+
 class MelisWebPackService implements ServiceLocatorAwareInterface
 {
     /**
@@ -25,14 +26,14 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     /**
      * Static mix files that will be included in the created webpack
      */
-	const WEBPACK_STATIC_FILE = 'webpack.mix.static.js';
+    const WEBPACK_STATIC_FILE = 'webpack.mix.static.js';
 
     /**
      * Use to store cache assets for "matching assets" purpose
      *
      * @var array
      */
-    private  $cacheFiles = [];
+    private $cacheFiles = [];
 
     /**
      * @var ServiceLocatorAwareInterface
@@ -40,62 +41,52 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     private $serviceLocator;
 
     /**
-     * Setter for ServiceLocator
-     * @param ServiceLocatorInterface $sl
-     * @return $this
-     */
-    public function setServiceLocator(ServiceLocatorInterface $sl)
-	{
-		$this->serviceLocator = $sl;
-
-		return $this;
-    }
-
-    /**
      * Returns the assets whether build or not
+     *
      * @return array
      */
     public function getAssets()
     {
-        $assets         = [];
-        $resources      = $this->config()->getItem('meliscore/ressources');
+        $assets = [];
+        $resources = $this->config()->getItem('meliscore/ressources');
         $useBuildAssets = (bool) $resources['build']['use_build_assets'];
 
-        $cssBuild       = $resources['build']['css'];
-        $jsBuild        = $resources['build']['js'];
-        $webpack        = file_get_contents($this->getWebPackMixFile());
-		$webpackStatic  = '';
+        $cssBuild = $resources['build']['css'];
+        $jsBuild = $resources['build']['js'];
+        $webpack = file_get_contents($this->getWebPackMixFile());
+        $webpackStatic = '';
 
-		if (file_exists($this->getWebPackMixStaticFile())) {
+        if (file_exists($this->getWebPackMixStaticFile())) {
             $webpackStatic = file_get_contents($this->getWebPackMixStaticFile());
         }
 
-		$webpack	   .= $webpackStatic;
-		
-        $scripts        = $this->getMergedAssets($useBuildAssets)['js'];
-        $stylesheets    = $this->getMergedAssets($useBuildAssets)['css'];
+        $webpack .= $webpackStatic;
+
+        $scripts = $this->getMergedAssets($useBuildAssets)['js'];
+        $stylesheets = $this->getMergedAssets($useBuildAssets)['css'];
 
         $assets = [
             'css' => $stylesheets,
-            'js'  => $scripts
+            'js' => $scripts,
         ];
 
         $nonBundledCss = $this->getMergedAssets()['css'];
-        $nonBundledJs  = $this->getMergedAssets()['js'];
-
+        $nonBundledJs = $this->getMergedAssets()['js'];
 
 
         if ($useBuildAssets) {
 
-            $nonBundledJs    = array_map(function($a) {
+            $nonBundledJs = array_map(function ($a) {
                 // remove the URI query
                 $a = str_replace('/', '\/', $a);
+
                 return preg_replace('/\?(.+?)*/', '', $a);
             }, $nonBundledJs);
 
-            $nonBundledCss = array_map(function($a) {
+            $nonBundledCss = array_map(function ($a) {
                 // remove the URI query
                 $a = str_replace('/', '\/', $a);
+
                 return preg_replace('/\?(.+?)*/', '', $a);
             }, $nonBundledCss);
 
@@ -114,20 +105,90 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
                 }
             }
 
-            $cssBuild = array_map(function($a) {
+            $cssBuild = array_map(function ($a) {
                 return str_replace('\/', '/', $a);
             }, $cssBuild);
 
-            $jsBuild = array_map(function($a) {
+            $jsBuild = array_map(function ($a) {
                 return str_replace('\/', '/', $a);
             }, $jsBuild);
 
-//            $assets = [
-//                'css' => array_merge($stylesheets,  $cssBuild),
-//                'js'  => array_merge($scripts,  $jsBuild),
-//            ];
-
         }
+
+        return $assets;
+    }
+
+    /**
+     * @return \MelisAssetManager\Service\MelisConfigService
+     */
+    private function config()
+    {
+        return $this->getServiceLocator()->get('MelisConfig');
+    }
+
+    /**
+     * get the Service Locator
+     *
+     * @return void
+     */
+    public function getServiceLocator()
+    {
+        return $this->serviceLocator;
+    }
+
+    /**
+     * Setter for ServiceLocator
+     *
+     * @param ServiceLocatorInterface $sl
+     *
+     * @return $this
+     */
+    public function setServiceLocator(ServiceLocatorInterface $sl)
+    {
+        $this->serviceLocator = $sl;
+
+        return $this;
+    }
+
+    /**
+     * Returns the path of "webpack.mix.js"
+     *
+     * @return string
+     */
+    protected function getWebPackMixFile()
+    {
+        $webPackPath = $_SERVER['DOCUMENT_ROOT'];
+        $file = self::WEBPACK_FILE;
+        $webpack = $webPackPath . DIRECTORY_SEPARATOR . $file;
+
+        return $webpack;
+    }
+
+    /**
+     * Returns the path of "webpack.mix.static.js"
+     *
+     * @return string
+     */
+    public function getWebPackMixStaticFile()
+    {
+        $webPackPath = $_SERVER['DOCUMENT_ROOT'];
+        $file = self::WEBPACK_STATIC_FILE;
+        $webpack = $webPackPath . DIRECTORY_SEPARATOR . $file;
+
+        return $webpack;
+    }
+
+    /**
+     * Returns assets from the loaded modules
+     *
+     * @param bool $useBundle
+     *
+     * @return array
+     */
+    public function getMergedAssets($useBundle = false)
+    {
+        $plugin = new MelisHeadPluginHelper($this->getServiceLocator());
+        $assets = $plugin->__invoke('/', $useBundle);
 
         return $assets;
     }
@@ -136,18 +197,18 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      * Checks all modules and compile all assets from each modules that will
      * be used in webpack
      *
-     * @return void
+     * @return string
      */
     public function buildWebPack()
     {
-        $assets       = $this->getMergedAssets();
-        $modules      = [];
+        $assets = $this->getMergedAssets();
+        $modules = [];
         $moduleAssets = [];
 
         $buildPath = $this->config()->getItem('meliscore/ressources');
         $buildPath = $buildPath['build']['build_path'];
-        $ds        = '/';
-        
+        $ds = '/';
+
 
         // get the module details via their assets info
         foreach ($assets['css'] as $idx => $asset) {
@@ -158,22 +219,24 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
             $module = $fileFragments[1] ?? null;
 
             if ($module) {
-                
+
                 $modulePath = $this->module()->getModulePath($module);
 
                 if ($modulePath) {
 
                     // check if the build directory for CSS exists
-                    $cssBuildPath = $modulePath.$ds.$buildPath.$ds.'css';
-                    if (!file_exists($cssBuildPath))
+                    $cssBuildPath = $modulePath . $ds . $buildPath . $ds . 'css';
+                    if (!file_exists($cssBuildPath)) {
                         @mkdir($cssBuildPath, 0777, true);
+                    }
 
                     // make sure that the file has the right access
                     @chmod($cssBuildPath, 0777);
-                    
+
                     $modules[$module]['path'] = $modulePath;
-                    if (preg_match("/$module/", $asset))
-                        $modules[$module]['css'][] = preg_replace("/\/$module\//", $modulePath.$ds.'public'.$ds, $asset, 1);
+                    if (preg_match("/$module/", $asset)) {
+                        $modules[$module]['css'][] = preg_replace("/\/$module\//", $modulePath . $ds . 'public' . $ds, $asset, 1);
+                    }
                 }
             }
         }
@@ -186,21 +249,23 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
             $module = $fileFragments[1] ?? null;
 
             if ($module) {
-                
+
                 $modulePath = $this->module()->getModulePath($module);
 
                 if ($modulePath) {
                     // check if the build directory for JS exists
-                    $jsBuildPath = $modulePath.$ds.$buildPath.$ds.'js';
-                    if (!file_exists($jsBuildPath))
+                    $jsBuildPath = $modulePath . $ds . $buildPath . $ds . 'js';
+                    if (!file_exists($jsBuildPath)) {
                         @mkdir($jsBuildPath, 0777, true);
+                    }
 
                     // make sure that the file has the right access
                     @chmod($jsBuildPath, 0777);
-                    
+
                     $modules[$module]['path'] = $modulePath;
-                    if (preg_match("/$module/", $asset))
-                        $modules[$module]['js'][] = preg_replace("/\/$module\//", $modulePath.$ds.'public'.$ds, $asset, 1);
+                    if (preg_match("/$module/", $asset)) {
+                        $modules[$module]['js'][] = preg_replace("/\/$module\//", $modulePath . $ds . 'public' . $ds, $asset, 1);
+                    }
                 }
             }
         }
@@ -210,23 +275,23 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
 
         foreach ($modules as $key => $module) {
             $hasCss = $module['css'] ?? false;
-            $hasJs  = $module['js']  ?? false;
+            $hasJs = $module['js'] ?? false;
 
             $mixScript .= '// ' . $key . PHP_EOL;
-            $path = $module['path'] . $ds . 'public'. $ds . 'build' . $ds;
+            $path = $module['path'] . $ds . 'public' . $ds . 'build' . $ds;
             if ($hasCss) {
-                $mixScript .= $this->getMixStyles($module['css'], $path.'css'.$ds.'bundle.css');
+                $mixScript .= $this->getMixStyles($module['css'], $path . 'css' . $ds . 'bundle.css');
             }
 
             if ($hasJs) {
-                $mixScript .= $this->getMixScripts($module['js'], $path.'js'.$ds.'bundle.js');
+                $mixScript .= $this->getMixScripts($module['js'], $path . 'js' . $ds . 'bundle.js');
             }
 
         }
 
         $webPackPath = $_SERVER['DOCUMENT_ROOT'] . $ds;
-        $mixScript  .= $this->getCached();
-        $webpack     = $this->getWebPackMixFile();
+        $mixScript .= $this->getCached();
+        $webpack = $this->getWebPackMixFile();
 
         file_put_contents($webpack, $mixScript);
         @chmod($webpack, 0777);
@@ -238,97 +303,23 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @param $css
-     * @param $path
-     * @return string
-     */
-    private function getMixStyles($css, $path)
-    {
-        return $this->createMixMethod(self::CSS, $css, $path);
-    }
-
-    /**
-     * @param $js
-     * @param $path
-     * @return string
-     */
-    private function getMixScripts($js, $path)
-    {
-        return $this->createMixMethod(self::JS, $js, $path);
-    }
-
-    /**
-     * @param $type
-     * @param $files
-     * @param $outputPath
-     * @return string
-     */
-    private function createMixMethod($type, $files, $outputPath)
-    {
-        $syntax  = "mix.$type([" . PHP_EOL;
-
-        foreach ($files as $file) {
-
-            // remove params on URL
-            $file = preg_replace('/\?(.+?)*/', '', $file);
-            $exists = file_exists($file) === true ? '// exists' : '// file does not exists';
-            $syntax .= "\t'$file', ". PHP_EOL;
-        }
-
-        $syntax .=  "], '$outputPath');\r\n\r\n";
-
-        return $syntax;
-    }
-
-    
-    /**
-     * get the Service Locator
-     *
-     * @return void
-     */
-	public function getServiceLocator()
-	{
-		return $this->serviceLocator;
-	}
-
-
-    /**
-     * Returns assets from the loaded modules
-     * @param bool $useBundle
-     * @return array
-     */
-    public function getMergedAssets($useBundle = false)
-    {
-        $plugin = new MelisHeadPluginHelper($this->getServiceLocator());
-        $assets = $plugin->__invoke('/', $useBundle);
-
-        return $assets;
-    }
-
-    /**
      * Stores the files where it will be used to generate a compiled asset
+     *
      * @param $file
      */
     public function setCachedFile($file)
     {
-        $this->cacheFiles  = array_merge($this->getCachedFiles(), [$file]);
+        $this->cacheFiles = array_merge($this->getCachedFiles(), [$file]);
     }
 
     /**
      * Returns the cached files
+     *
      * @return array
      */
     public function getCachedFiles()
     {
         return $this->cacheFiles;
-    }
-
-    /**
-     * @return \MelisAssetManager\Service\MelisConfigService
-     */
-    private function config()
-    {
-        return $this->getServiceLocator()->get('MelisConfig');
     }
 
     /**
@@ -343,8 +334,54 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     {
         $staticFile = self::WEBPACK_STATIC_FILE;
 
-        return "require('./$staticFile');\r\n" . 
-        "let mix = require('laravel-mix');\r\n\r\n";
+        return "require('./$staticFile');\r\n" .
+            "let mix = require('laravel-mix');\r\n\r\n";
+    }
+
+    /**
+     * @param $css
+     * @param $path
+     *
+     * @return string
+     */
+    private function getMixStyles($css, $path)
+    {
+        return $this->createMixMethod(self::CSS, $css, $path);
+    }
+
+    /**
+     * @param $type
+     * @param $files
+     * @param $outputPath
+     *
+     * @return string
+     */
+    private function createMixMethod($type, $files, $outputPath)
+    {
+        $syntax = "mix.$type([" . PHP_EOL;
+
+        foreach ($files as $file) {
+
+            // remove params on URL
+            $file = preg_replace('/\?(.+?)*/', '', $file);
+            $exists = file_exists($file) === true ? '// exists' : '// file does not exists';
+            $syntax .= "\t'$file', " . PHP_EOL;
+        }
+
+        $syntax .= "], '$outputPath');\r\n\r\n";
+
+        return $syntax;
+    }
+
+    /**
+     * @param $js
+     * @param $path
+     *
+     * @return string
+     */
+    private function getMixScripts($js, $path)
+    {
+        return $this->createMixMethod(self::JS, $js, $path);
     }
 
     /**
@@ -356,39 +393,13 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
     {
         $syntax = "// Cached assets do not modify\r\nlet cache = [" . PHP_EOL;
 
-        foreach($this->getCachedFiles() as $file) {
+        foreach ($this->getCachedFiles() as $file) {
             $syntax .= "'$file'," . PHP_EOL;
         }
 
         $syntax .= "];";
 
         return $syntax;
-    }
-
-    /**
-     * Returns the path of "webpack.mix.js"
-     * @return string
-     */
-    protected function getWebPackMixFile()
-    {
-        $webPackPath = $_SERVER['DOCUMENT_ROOT'];
-        $file        = self::WEBPACK_FILE;
-        $webpack     = $webPackPath. DIRECTORY_SEPARATOR . $file;
-
-        return $webpack;
-    }
-
-    /**
-     * Returns the path of "webpack.mix.static.js"
-     * @return string
-     */
-    public function getWebPackMixStaticFile()
-    {
-        $webPackPath = $_SERVER['DOCUMENT_ROOT'];
-        $file        = self::WEBPACK_STATIC_FILE;
-        $webpack     = $webPackPath . DIRECTORY_SEPARATOR . $file;
-
-        return $webpack;
     }
 
 }

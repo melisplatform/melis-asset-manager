@@ -7,54 +7,54 @@
  *
  */
 
-return array(
-    'router' => array(
-        'routes' => array(
+return [
+    'router' => [
+        'routes' => [
             'melis-backoffice' => [
                 'child_routes' => [
                     'webpack_builder' => [
                         'type' => 'Segment',
-                        'options' => array(
+                        'options' => [
                             'route' => 'build-webpack',
-                            'defaults' => array(
+                            'defaults' => [
                                 'controller' => 'MelisAssetManager\Controller\WebPack',
                                 'action' => 'buildWebpack',
-                            ),
-                        ),
+                            ],
+                        ],
                     ],
                     'view_assets' => [
                         'type' => 'Segment',
-                        'options' => array(
+                        'options' => [
                             'route' => 'view-assets',
-                            'defaults' => array(
+                            'defaults' => [
                                 'controller' => 'MelisAssetManager\Controller\WebPack',
                                 'action' => 'viewAssets',
-                            ),
-                        ),
-                    ]
-                ]
-            ]
+                            ],
+                        ],
+                    ],
+                ],
+            ],
 
-        ),
-    ),
-    'translator' => array(
-    	'locale' => 'en_EN',
-	),
-    'service_manager' => array(
-        'aliases' => array(
+        ],
+    ],
+    'translator' => [
+        'locale' => 'en_EN',
+    ],
+    'service_manager' => [
+        'aliases' => [
             'translator' => 'MvcTranslator',
-        ),
-        'factories' => array(
+        ],
+        'factories' => [
             'MelisAssetManagerModulesService' => MelisAssetManager\Service\Factory\MelisModulesServiceFactory::class,
             'MelisAssetManagerWebPack' => MelisAssetManager\Service\Factory\MelisWebPackServiceFactory::class,
             'MelisConfig' => MelisAssetManager\Service\Factory\MelisConfigServiceFactory::class,
-        ),
-    ),
-    'controllers' => array(
-        'invokables' => array(
-            'MelisAssetManager\Controller\WebPack' => 'MelisAssetManager\Controller\WebPackController'
-        ),
-    ),
+        ],
+    ],
+    'controllers' => [
+        'invokables' => [
+            'MelisAssetManager\Controller\WebPack' => 'MelisAssetManager\Controller\WebPackController',
+        ],
+    ],
     'view_helpers' => [
         'invokables' => [
             'melisCoreIcon' => \MelisAssetManager\View\Helper\MelisCoreIconHelper::class,
@@ -63,8 +63,8 @@ return array(
             'melisCommerceIcon' => \MelisAssetManager\View\Helper\MelisCommerceIconHelper::class,
             'melisOthersIcon' => \MelisAssetManager\View\Helper\MelisOthersIconHelper::class,
             'melisCustomIcon' => \MelisAssetManager\View\Helper\MelisCustomIconHelper::class,
-        ]
+        ],
     ],
-    'view_manager' => array(
-    ),
-);
+    'view_manager' => [
+    ],
+];
