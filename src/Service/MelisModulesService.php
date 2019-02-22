@@ -504,7 +504,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
             'melisdbdeploy' => 'MelisDbDeploy',
             'meliscomposerdeploy' => 'MelisComposerDeploy',
             'meliscore' => 'MelisCore',
-            'melisinstaller' => 'MelisInstaller',
             'melissites' => 'MelisSites',
             'melisassetmanager' => 'MelisAssetManager',
         ];
