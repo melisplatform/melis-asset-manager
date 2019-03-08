@@ -19,8 +19,6 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 class MelisModulesService implements ServiceLocatorAwareInterface
 {
-    private const MELIS_SITES_FOLDER = 'MelisSites';
-
     /** @var \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator */
     public $serviceLocator;
 
@@ -143,24 +141,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         $modules = [];
         if ($this->checkDir($userModules)) {
             $modules = $this->getDir($userModules);
-
-            /**
-             * Check if the folder(module) is valid. Current check(s) applied:
-             *  - has "Module.php" file?
-             */
-            foreach ($modules as $moduleIndex => $module) {
-                $modulePath = $userModules . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR;
-
-                if ($module === self::MELIS_SITES_FOLDER) {
-                    /** skip check */
-                    continue;
-                }
-
-                if (!is_file( $modulePath . "Module.php")) {
-                    /** Module.php file was not found - remove module from the list */
-                    unset($modules[$moduleIndex]);
-                }
-            }
         }
 
         return $modules;
@@ -636,7 +616,12 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     public function loadModule($module)
     {
-        if (!in_array($module, $this->getActiveModules())) {
+        $trgtModule = $module;
+        if (is_array($module) && !empty($module)) {
+            $trgtModule = $module[count($module)-1];
+        }
+
+        if (!in_array($trgtModule, $this->getActiveModules())) {
             $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
             if (file_exists($moduleLoadFile)) {
                 $modules = include $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
@@ -650,7 +635,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
             }
         }
 
-        return $this->isModuleLoaded($module);
+        return $this->isModuleLoaded($trgtModule);
     }
 
     /**
@@ -660,22 +645,27 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     public function unloadModule($module)
     {
-        if (in_array($module, $this->getActiveModules())) {
-            $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
-            if (file_exists($moduleLoadFile)) {
-                $modules = include $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
-                foreach ($modules as $idx => $loadedModule) {
-                    if ($loadedModule === $module) {
-                        unset($modules[$idx]);
-                        break;
-                    }
-                }
-
-                $this->createModuleLoader('config/', $modules, [], []);
-            }
+        $modules = $module;
+        if (!is_array($module)) {
+            $modules[] = $module;
         }
 
-        return !$this->isModuleLoaded($module);
+        $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
+
+        if (file_exists($moduleLoadFile)) {
+            $loadModules = include $moduleLoadFile;
+
+            foreach ($loadModules as $idx => $loadedModule) {
+                if (in_array($loadedModule, $modules)) {
+                    unset($loadModules[$idx]);
+                    break;
+                }
+            }
+
+            $this->createModuleLoader('config/', $loadModules, [], []);
+        }
+
+        return false;
     }
 
     /**
