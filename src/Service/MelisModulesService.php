@@ -658,7 +658,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
             foreach ($loadModules as $idx => $loadedModule) {
                 if (in_array($loadedModule, $modules)) {
                     unset($loadModules[$idx]);
-                    break;
                 }
             }
 
