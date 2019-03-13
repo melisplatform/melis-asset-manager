@@ -647,6 +647,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     {
         $modules = $module;
         if (!is_array($module)) {
+            $modules = [];
             $modules[] = $module;
         }
 
