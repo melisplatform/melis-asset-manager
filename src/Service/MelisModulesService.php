@@ -599,6 +599,8 @@ class MelisModulesService implements ServiceLocatorAwareInterface
                     unlink($pathToStore . '/' . $fileName);
                     // rename the module loader tmp file into module.load.php
                     rename($pathToStore . '/' . $tmpFileName, $pathToStore . '/' . $fileName);
+                    // Adding permission access
+                    chmod($pathToStore . '/' . $fileName, 0777);
                     // if everything went well
                     return true;
                 }
