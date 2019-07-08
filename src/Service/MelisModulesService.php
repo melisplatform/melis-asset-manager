@@ -708,7 +708,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
             }
         }
 
-        if ($repo) {
+        if (isset($repo['melis-site'])) {
             return (bool) $repo['melis-site'] ?? false;
         }
 
