@@ -4,10 +4,18 @@ namespace MelisAssetManager\View\Helper;
 class MelisCommerceIconHelper extends AbstractMelisIconsHelper
 {
     /** @var const BACKGROUND */
-    const BACKGROUND = '#3997d4';
+    /*
+     * Orig: const BACKGROUND = '#3997d4';
+     * Interchanged color hex based on melis-commerce logo https://www.melistechnology.com/
+     */
+    const BACKGROUND = '#2780c4';
 
     /** @var const FOREGROUND */
-    const FOREGROUND = '#2780c4';
+    /*
+     * Orig: const FOREGROUND = '#2780c4';
+     * Interchanged color hex based on melis-commerce logo https://www.melistechnology.com/
+     */
+    const FOREGROUND = '#3997d4';
     /**
      * @param int $width
      * @param int $height
