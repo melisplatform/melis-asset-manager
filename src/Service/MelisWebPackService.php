@@ -3,8 +3,8 @@
 namespace MelisAssetManager\Service;
 
 use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use Laminas\ServiceManager\ServiceLocatorAwareInterface;
+use Laminas\ServiceManager\ServiceLocatorInterface;
 
 class MelisWebPackService implements ServiceLocatorAwareInterface
 {

@@ -12,14 +12,14 @@ use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
-use Zend\Config\Config;
-use Zend\Config\Writer\PhpArray;
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use Laminas\Config\Config;
+use Laminas\Config\Writer\PhpArray;
+use Laminas\ServiceManager\ServiceLocatorAwareInterface;
+use Laminas\ServiceManager\ServiceLocatorInterface;
 
 class MelisModulesService implements ServiceLocatorAwareInterface
 {
-    /** @var \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator */
+    /** @var \Laminas\ServiceManager\ServiceLocatorInterface $serviceLocator */
     public $serviceLocator;
 
     /**
@@ -40,7 +40,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
 
         $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
-        $composer = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+        $composer = (array) \Laminas\Json\Json::decode(file_get_contents($composerFile));
 
 
         foreach ($composer as $package) {
@@ -427,7 +427,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @return \Zend\ServiceManager\ServiceLocatorInterface
+     * @return \Laminas\ServiceManager\ServiceLocatorInterface
      */
     public function getServiceLocator()
     {
@@ -435,7 +435,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @param \Zend\ServiceManager\ServiceLocatorInterface $sl
+     * @param \Laminas\ServiceManager\ServiceLocatorInterface $sl
      *
      * @return $this
      */
@@ -695,7 +695,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
 
         $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
-        $composer = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+        $composer = (array) \Laminas\Json\Json::decode(file_get_contents($composerFile));
 
         $repo = null;
 
