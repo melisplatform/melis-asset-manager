@@ -4,7 +4,6 @@ namespace MelisAssetManager\Controller;
 use Laminas\Mvc\Controller\AbstractActionController;
 class WebPackController extends AbstractActionController
 {
-
     /**
      * This action generates a webpack.mix.js file that will be used build a compiled
      * CSS and JS
@@ -31,7 +30,7 @@ class WebPackController extends AbstractActionController
      */
     private function webpack()
     {
-        return $this->getServiceLocator()->get('MelisAssetManagerWebPack');
+        return $this->getEvent()->getApplication()->getServiceManager()->get('MelisAssetManagerWebPack');
     }
 
 

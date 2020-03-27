@@ -14,13 +14,21 @@ use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
 use Laminas\Config\Config;
 use Laminas\Config\Writer\PhpArray;
-use Laminas\ServiceManager\ServiceLocatorAwareInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
+use Laminas\ServiceManager\ServiceManager;
 
-class MelisModulesService implements ServiceLocatorAwareInterface
+class MelisModulesService
 {
-    /** @var \Laminas\ServiceManager\ServiceLocatorInterface $serviceLocator */
-    public $serviceLocator;
+    public $serviceManager;
+
+    public function setServiceManager(ServiceManager $serviceManager)
+    {
+        $this->serviceManager = $serviceManager;
+    }
+
+    public function getServiceManager()
+    {
+        return $this->serviceManager;
+    }
 
     /**
      * @var Composer
@@ -61,7 +69,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
                     break;
                 }
             }
-
         }
 
         $userModules = $this->getUserModules();
@@ -70,6 +77,9 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         foreach ($userModules as $module) {
             if (!in_array($module, $exclusions)) {
                 $class = $_SERVER['DOCUMENT_ROOT'] . '/../module/' . $module . '/Module.php';
+                if (!file_exists($class))
+                    continue;
+
                 $class = file_get_contents($class);
 
                 $package = $module;
@@ -350,7 +360,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
 
             if ($convertPackageNameToNamespace) {
                 $tmpDependencies = [];
-                $toolSvc = $this->getServiceLocator()->get('MelisCoreTool');
+                $toolSvc = $this->getServiceManager()->get('MelisCoreTool');
 
                 foreach ($dependencies as $dependency) {
                     $tmpDependencies[] = ucfirst($toolSvc->convertToNormalFunction($dependency));
@@ -427,26 +437,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     }
 
     /**
-     * @return \Laminas\ServiceManager\ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    /**
-     * @param \Laminas\ServiceManager\ServiceLocatorInterface $sl
-     *
-     * @return $this
-     */
-    public function setServiceLocator(ServiceLocatorInterface $sl)
-    {
-        $this->serviceLocator = $sl;
-
-        return $this;
-    }
-
-    /**
      * Returns all the modules that has been loaded in zend
      *
      * @param array $exclude
@@ -455,7 +445,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     public function getActiveModules($exclude = [])
     {
-        $mm = $this->getServiceLocator()->get('ModuleManager');
+        $mm = $this->getServiceManager()->get('ModuleManager');
         $loadedModules = array_keys($mm->getLoadedModules());
         $pluginModules = $this->getModulePlugins();
         $modules = [];

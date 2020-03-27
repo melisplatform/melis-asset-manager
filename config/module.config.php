@@ -7,47 +7,53 @@
  *
  */
 
-return [
-    'router' => [
-        'routes' => [
-            'melis-backoffice' => [
-                'child_routes' => [
-                    'webpack_builder' => [
-                        'type' => 'Segment',
-                        'options' => [
-                            'route' => 'build-webpack',
-                            'defaults' => [
-                                'controller' => 'MelisAssetManager\Controller\WebPack',
-                                'action' => 'buildWebpack',
-                            ],
-                        ],
-                    ],
-                    'view_assets' => [
-                        'type' => 'Segment',
-                        'options' => [
-                            'route' => 'view-assets',
-                            'defaults' => [
-                                'controller' => 'MelisAssetManager\Controller\WebPack',
-                                'action' => 'viewAssets',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
+use MelisAssetManager\Service\Factory\AbstractFactory;
+use MelisAssetManager\Service\MelisModulesService;
+use MelisAssetManager\Service\MelisWebPackService;
+use MelisAssetManager\Service\MelisConfigService;
 
-        ],
-    ],
+return [
+     'router' => [
+         'routes' => [
+             'melis-backoffice' => [
+                 'child_routes' => [
+                     'webpack_builder' => [
+                         'type' => 'Segment',
+                         'options' => [
+                             'route' => 'build-webpack',
+                             'defaults' => [
+                                 'controller' => 'MelisAssetManager\Controller\WebPack',
+                                 'action' => 'buildWebpack',
+                             ],
+                         ],
+                     ],
+                     'view_assets' => [
+                         'type' => 'Segment',
+                         'options' => [
+                             'route' => 'view-assets',
+                             'defaults' => [
+                                 'controller' => 'MelisAssetManager\Controller\WebPack',
+                                 'action' => 'viewAssets',
+                             ],
+                         ],
+                     ],
+                 ],
+             ],
+         ],
+     ],
     'translator' => [
         'locale' => 'en_EN',
     ],
     'service_manager' => [
-        'aliases' => [
-            'translator' => 'MvcTranslator',
-        ],
         'factories' => [
-            'MelisAssetManagerModulesService' => MelisAssetManager\Service\Factory\MelisModulesServiceFactory::class,
-            'MelisAssetManagerWebPack' => MelisAssetManager\Service\Factory\MelisWebPackServiceFactory::class,
-            'MelisConfig' => MelisAssetManager\Service\Factory\MelisConfigServiceFactory::class,
+            MelisModulesService::class => AbstractFactory::class,
+            MelisWebPackService::class => AbstractFactory::class,
+            MelisConfigService::class => AbstractFactory::class,
+        ],
+        'aliases' => [
+            'MelisAssetManagerModulesService' => MelisModulesService::class,
+            'MelisAssetManagerWebPack' => MelisWebPackService::class,
+            'MelisConfig' => MelisConfigService::class,
         ],
     ],
     'controllers' => [

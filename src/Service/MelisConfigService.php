@@ -2,14 +2,25 @@
 
 namespace MelisAssetManager\Service;
 
-use Laminas\ServiceManager\ServiceLocatorAwareInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
+use Laminas\I18n\Translator\Translator;
 use Laminas\Stdlib\ArrayUtils;
+use Laminas\ServiceManager\ServiceManager;
 
-class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorAwareInterface
+class MelisConfigService implements MelisConfigServiceInterface
 {
-    public $serviceLocator;
     public $appConfig;
+
+    protected $serviceManager;
+
+    public function setServiceManager(ServiceManager $service)
+    {
+        $this->serviceManager = $service;
+    }
+
+    public function getServiceManager()
+    {
+        return $this->serviceManager;
+    }
 
     public function getJsCallbacksDatas($array, $final = [], $datas = [])
     {
@@ -207,7 +218,7 @@ class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorA
 
     public function getItem($pathString = '', $prefix = '')
     {
-        $config = $this->serviceLocator->get('config');
+        $config = $this->getServiceManager()->get('config');
         if (!empty($config['plugins'])) {
             $this->appConfig = $config['plugins'];
         } else {
@@ -278,7 +289,7 @@ class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorA
 
         if (empty($array)) {
 
-            $config = $this->getServiceLocator()->get('config');
+            $config = $this->getServiceManager()->get('config');
             if (!empty($config['plugins'])) {
                 $array = $config['plugins'];
             } else {
@@ -299,18 +310,6 @@ class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorA
         }
 
         return $final;
-    }
-
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    public function setServiceLocator(ServiceLocatorInterface $sl)
-    {
-        $this->serviceLocator = $sl;
-
-        return $this;
     }
 
     private function getItemRec($pathTab, $position, $configTab)
@@ -366,7 +365,9 @@ class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorA
 
     public function translateAppConfig($array)
     {
-        $translator = $this->serviceLocator->get('translator');
+//        $translator = $this->getServiceManager()->get('translator');
+
+        $translator = new Translator();
 
         $final = [];
         foreach ($array as $key => $value) {
@@ -409,7 +410,7 @@ class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorA
 
     public function getOrderFormsConfig($keyForm)
     {
-        $config = $this->getServiceLocator()->get('config');
+        $config = $this->getServiceManager()->get('config');
         if (!empty($config['forms_ordering'])) {
             $array = $config['forms_ordering'];
         } else {
@@ -425,7 +426,7 @@ class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorA
 
     public function getOrderInterfaceConfig($keyInterface)
     {
-        $config = $this->getServiceLocator()->get('config');
+        $config = $this->getServiceManager()->get('config');
         if (!empty($config['interface_ordering'])) {
             $array = $config['interface_ordering'];
         } else {
@@ -441,7 +442,7 @@ class MelisConfigService implements MelisConfigServiceInterface, ServiceLocatorA
 
     public function isInterfaceDisabled($keyInterface)
     {
-        $config = $this->getServiceLocator()->get('config');
+        $config = $this->getServiceManager()->get('config');
         if (!empty($config['interface_disable'])) {
             $array = $config['interface_disable'];
         } else {
