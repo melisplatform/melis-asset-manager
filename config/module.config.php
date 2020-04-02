@@ -41,9 +41,6 @@ return [
              ],
          ],
      ],
-    'translator' => [
-        'locale' => 'en_EN',
-    ],
     'service_manager' => [
         'factories' => [
             MelisModulesService::class => AbstractFactory::class,
@@ -58,7 +55,7 @@ return [
     ],
     'controllers' => [
         'invokables' => [
-            'MelisAssetManager\Controller\WebPack' => 'MelisAssetManager\Controller\WebPackController',
+            'MelisAssetManager\Controller\WebPack' => \MelisAssetManager\Controller\WebPackController::class,
         ],
     ],
     'view_helpers' => [
@@ -70,7 +67,5 @@ return [
             'melisOthersIcon' => \MelisAssetManager\View\Helper\MelisOthersIconHelper::class,
             'melisCustomIcon' => \MelisAssetManager\View\Helper\MelisCustomIconHelper::class,
         ],
-    ],
-    'view_manager' => [
-    ],
+    ]
 ];
