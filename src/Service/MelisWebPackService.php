@@ -4,21 +4,10 @@ namespace MelisAssetManager\Service;
 
 use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
 use Laminas\ServiceManager\ServiceManager;
+use MelisCore\Service\MelisServiceManager;
 
-class MelisWebPackService
+class MelisWebPackService extends MelisServiceManager
 {
-    public $serviceManager;
-
-    public function setServiceManager(ServiceManager $service)
-    {
-        $this->serviceManager = $service;
-    }
-
-    public function getServiceManager()
-    {
-        return $this->serviceManager;
-    }
-
     /**
      * Type of method that will be used to build a CSS
      */
@@ -45,11 +34,6 @@ class MelisWebPackService
      * @var array
      */
     private $cacheFiles = [];
-
-    /**
-     * @var ServiceLocatorAwareInterface
-     */
-    private $serviceLocator;
 
     /**
      * Returns the assets whether build or not

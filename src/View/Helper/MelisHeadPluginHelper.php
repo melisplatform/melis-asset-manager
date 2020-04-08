@@ -2,7 +2,7 @@
 
 namespace MelisAssetManager\View\Helper;
 
-use Laminas\ServiceManager\ServiceLocatorAwareInterface;
+use Laminas\ServiceManager\ServiceManager;
 use Laminas\View\Helper\AbstractHelper;
 use MelisCore\Library\MelisAppConfig;
 
@@ -10,7 +10,7 @@ class MelisHeadPluginHelper extends AbstractHelper
 {
 
     /**
-     * @var ServiceLocatorAwareInterface
+     * @var ServiceManager $serviceManager
      */
 	public $serviceManager;
 

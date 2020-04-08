@@ -2,6 +2,7 @@
 namespace MelisAssetManager\Controller;
 
 use Laminas\Mvc\Controller\AbstractActionController;
+
 class WebPackController extends AbstractActionController
 {
     /**

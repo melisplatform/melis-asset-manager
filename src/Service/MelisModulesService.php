@@ -15,21 +15,10 @@ use Composer\Package\CompletePackage;
 use Laminas\Config\Config;
 use Laminas\Config\Writer\PhpArray;
 use Laminas\ServiceManager\ServiceManager;
+use MelisCore\Service\MelisServiceManager;
 
-class MelisModulesService
+class MelisModulesService extends MelisServiceManager
 {
-    public $serviceManager;
-
-    public function setServiceManager(ServiceManager $serviceManager)
-    {
-        $this->serviceManager = $serviceManager;
-    }
-
-    public function getServiceManager()
-    {
-        return $this->serviceManager;
-    }
-
     /**
      * @var Composer
      */
@@ -437,7 +426,7 @@ class MelisModulesService
     }
 
     /**
-     * Returns all the modules that has been loaded in zend
+     * Returns all the modules that has been loaded in laminas
      *
      * @param array $exclude
      *

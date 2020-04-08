@@ -42,15 +42,10 @@ return [
          ],
      ],
     'service_manager' => [
-        'factories' => [
-            MelisModulesService::class => AbstractFactory::class,
-            MelisWebPackService::class => AbstractFactory::class,
-            MelisConfigService::class => AbstractFactory::class,
-        ],
         'aliases' => [
-            'MelisAssetManagerModulesService' => MelisModulesService::class,
-            'MelisAssetManagerWebPack' => MelisWebPackService::class,
-            'MelisConfig' => MelisConfigService::class,
+            'MelisAssetManagerModulesService'   => MelisModulesService::class,
+            'MelisAssetManagerWebPack'          => MelisWebPackService::class,
+            'MelisConfig'                       => MelisConfigService::class,
         ],
     ],
     'controllers' => [

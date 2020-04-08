@@ -5,22 +5,11 @@ namespace MelisAssetManager\Service;
 use Laminas\I18n\Translator\Translator;
 use Laminas\Stdlib\ArrayUtils;
 use Laminas\ServiceManager\ServiceManager;
+use MelisCore\Service\MelisServiceManager;
 
-class MelisConfigService implements MelisConfigServiceInterface
+class MelisConfigService extends MelisServiceManager implements MelisConfigServiceInterface
 {
     public $appConfig;
-
-    protected $serviceManager;
-
-    public function setServiceManager(ServiceManager $service)
-    {
-        $this->serviceManager = $service;
-    }
-
-    public function getServiceManager()
-    {
-        return $this->serviceManager;
-    }
 
     public function getJsCallbacksDatas($array, $final = [], $datas = [])
     {
