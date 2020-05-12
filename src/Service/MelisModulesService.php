@@ -249,7 +249,8 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     public function getVendorModules()
     {
         $packagesCacheDir = $_SERVER['DOCUMENT_ROOT'] . '/../cache/composer_packages/';
-        $file = $packagesCacheDi . 'installerd_packages.dat';
+        $file = $packagesCacheDir . 'installed_packages.dat';
+
         if (file_exists($file)) {
             $repoPackages = unserialize($file);
         } else {
@@ -258,8 +259,8 @@ class MelisModulesService implements ServiceLocatorAwareInterface
 
             try  {
 
-                if (!is_dir(packagesCacheDir)) {
-                    mkdir(packagesCacheDir, 0777);
+                if (!is_dir($packagesCacheDir)) {
+                    mkdir($packagesCacheDir, 0777);
                 }
 
                 $fd = fopen($file, 'w');
