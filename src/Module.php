@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2017 Melis Technology (http://www.melistechnology.com)
  *
  */
- 
+
 namespace MelisAssetManager;
 
 use Zend\Mvc\ModuleRouteListener;
@@ -54,7 +54,7 @@ class Module
         $modulesService     = $sm->get('MelisAssetManagerModulesService');
         $assetConfigFolder  = $_SERVER['DOCUMENT_ROOT'] . '/../config';
         $sitesModulesFolder = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites';
-        $allModules         = $modulesService->getAllModules();
+        $allModules         = $modulesService->getAllModules(true);
 
         $modulePathFile = $assetConfigFolder . $this->modulePathFile;
 
@@ -247,16 +247,16 @@ class Module
     
     public function getConfig()
     {
-    	$config = array();
-    	$configFiles = array(
-    			include __DIR__ . '/../config/module.config.php',
-    	);
-    	
-    	foreach ($configFiles as $file) {
-    		$config = ArrayUtils::merge($config, $file);
-    	} 
-    	
-    	return $config;
+        $config = array();
+        $configFiles = array(
+                include __DIR__ . '/../config/module.config.php',
+        );
+        
+        foreach ($configFiles as $file) {
+            $config = ArrayUtils::merge($config, $file);
+        } 
+        
+        return $config;
     }
 
     public function getAutoloaderConfig()
@@ -269,5 +269,5 @@ class Module
             ),
         );
     }
- 
+
 }
