@@ -107,12 +107,8 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     public function getComposer()
     {
         if (is_null($this->composer)) {
-            // required by composer factory but not used to parse local repositories
-            if (!isset($_ENV['COMPOSER_HOME'])) {
-                putenv("COMPOSER_HOME=".$_SERVER['DOCUMENT_ROOT'] . '/../');
-            }
-            $factory = new Factory();
-            $this->setComposer($factory->createComposer(new NullIO()));
+            $composer = new \MelisComposerDeploy\MelisComposer();
+            $this->composer = $composer->getComposer();
         }
 
         return $this->composer;
@@ -249,25 +245,37 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     public function getVendorModules()
     {
         $packagesCacheDir = $_SERVER['DOCUMENT_ROOT'] . '/../cache/composer_packages/';
-        $file = $packagesCacheDir . 'installed_packages.dat';
+        $melisPackages = $packagesCacheDir . 'melis_packages.dat';
 
-        if (file_exists($file)) {
-            $repoPackages = unserialize($file);
+        if (file_exists($melisPackages)) {
+            $modules = unserialize(file_get_contents($melisPackages));
         } else {
             $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
             $repoPackages = $repos->getPackages();
 
-            try  {
+            $packages = array_filter($repoPackages, function ($package) {
+                /** @var CompletePackage $package */
+                return $package->getType() === 'melisplatform-module' &&
+                    array_key_exists('module-name', $package->getExtra());
+            });
+    
+            $modules = array_map(function ($package) {
+                /** @var CompletePackage $package */
+                return $package->getExtra()['module-name'];
+            }, $packages);
+    
+            sort($modules);
 
+            try {
                 if (!is_dir($packagesCacheDir)) {
                     mkdir($packagesCacheDir, 0777);
                 }
 
-                $fd = fopen($file, 'w');
+                $fd = fopen($melisPackages, 'w');
                 if ($fd) {
-                    fwrite($fd, serialize($repoPackages));
+                    fwrite($fd, serialize($modules));
                     fclose($fd);
-                    chmod($file, 0777);
+                    chmod($melisPackages, 0777);
                 } else {
                     /*echo "Error generating file $modulePathFile : check rights";
                     die;*/
@@ -277,19 +285,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
                 die;*/
             }
         }
-
-        $packages = array_filter($repoPackages, function ($package) {
-            /** @var CompletePackage $package */
-            return $package->getType() === 'melisplatform-module' &&
-                array_key_exists('module-name', $package->getExtra());
-        });
-
-        $modules = array_map(function ($package) {
-            /** @var CompletePackage $package */
-            return $package->getExtra()['module-name'];
-        }, $packages);
-
-        sort($modules);
 
         return $modules;
     }
@@ -456,27 +451,8 @@ class MelisModulesService implements ServiceLocatorAwareInterface
             return self::getModulePath($moduleName, $returnFullPath);
         } else {
 
-            $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
-            $packages = $repos->getPackages();
-
-            if (!empty($packages)) {
-                foreach ($packages as $repo) {
-                    if ($repo->getType() == 'melisplatform-module') {
-                        if (array_key_exists('module-name', $repo->getExtra())
-                            && $moduleName == $repo->getExtra()['module-name']) {
-                            foreach ($repo->getRequires() as $require) {
-                                $source = $require->getSource();
-
-                                if ($returnFullPath) {
-                                    return $_SERVER['DOCUMENT_ROOT'] . '/../vendor/' . $source;
-                                } else {
-                                    return '/vendor/' . $source;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            $composer = new \MelisComposerDeploy\MelisComposer();
+            return $composer->getComposerModulePath($moduleName, $returnFullPath);
         }
 
         return '';
