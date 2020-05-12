@@ -27,6 +27,13 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     protected $composer;
 
+    public $melisComposer;
+
+    public function __construct()
+    {
+        $this->melisComposer = new \MelisComposerDeploy\MelisComposer();
+    }
+
     /**
      * Returns the module name, module package, and its' version
      *
@@ -233,7 +240,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     public function getAllModules($composerPackages = false)
     {
         if ($composerPackages){
-            $repos = array_merge($this->getUserModules(), $this->getVendorModules());
+            return array_merge($this->getUserModules(), $this->getVendorModules());
         } else
             return array_keys(self::modulesConfigPath());
     }
@@ -408,13 +415,19 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      *
      * @return string
      */
-    public static function getModulePath($module, $relativePath = false) 
+    public function getModulePath($module, $relativePath = true) 
     {
         // Modules path from config 
         $modulesPath = self::modulesConfigPath();
 
-        if (is_null($modulesPath))
-            return;
+        if (is_null($modulesPath)){
+
+            $path = $this->getUserModulePath($module, $relativePath);
+            if ($path == '') {
+                $path = $this->getComposerModulePath($module, $relativePath);
+            }
+            return $path;
+        }
 
         if (!empty($modulesPath[$module])) {
             if (!$relativePath) {
@@ -448,11 +461,9 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         $modulesPathsConfig = self::modulesConfigPath();
 
         if (!is_null($modulesPathsConfig)) {
-            return self::getModulePath($moduleName, $returnFullPath);
+            return $this->getModulePath($moduleName, $returnFullPath);
         } else {
-
-            $composer = new \MelisComposerDeploy\MelisComposer();
-            return $composer->getComposerModulePath($moduleName, $returnFullPath);
+            return $this->melisComposer->getComposerModulePath($moduleName, $returnFullPath);
         }
 
         return '';
