@@ -420,22 +420,22 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         // Modules path from config 
         $modulesPath = self::modulesConfigPath();
 
-        if (is_null($modulesPath)){
+        $path = '';
 
+        if (is_null($modulesPath))
             $path = $this->getUserModulePath($module, $relativePath);
-            if ($path == '') {
-                $path = $this->getComposerModulePath($module, $relativePath);
-            }
-            return $path;
-        }
 
         if (!empty($modulesPath[$module])) {
-            if (!$relativePath) {
-                return $modulesPath[$module];
-            } else {
-                return $_SERVER['DOCUMENT_ROOT'].'/..'.$modulesPath[$module];
-            }
+            if (!$relativePath)
+                $path = $modulesPath[$module];
+            else
+                $path = $_SERVER['DOCUMENT_ROOT'].'/..'.$modulesPath[$module];
         }
+
+        if (!$path) 
+            $path = $this->melisComposer->getComposerModulePath($module, $relativePath);
+
+        return $path;
     }
 
     public function getUserModulePath($moduleName, $returnFullPath = true)
