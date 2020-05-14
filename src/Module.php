@@ -54,7 +54,7 @@ class Module
         $modulesService     = $sm->get('MelisAssetManagerModulesService');
         $assetConfigFolder  = $_SERVER['DOCUMENT_ROOT'] . '/../config';
         $sitesModulesFolder = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites';
-        $allModules         = $modulesService->getAllModules(true);
+        $allModules         = $modulesService->getAllModules();
 
         $modulePathFile = $assetConfigFolder . $this->modulePathFile;
 
@@ -63,7 +63,7 @@ class Module
         {
             // checking if there's new modules not in the path list
             $loadedModules = $modulesService->getActiveModules();
-            $existingPathModules = require $assetConfigFolder . $this->modulePathFile; 
+            $existingPathModules = require $assetConfigFolder . $this->modulePathFile;
             
             foreach ($loadedModules as $moduleName)
             {
@@ -74,8 +74,7 @@ class Module
                 }
             }
         }
-        
-        
+
         if (!file_exists($modulePathFile) || $newModules)
         {
 
@@ -131,7 +130,6 @@ class Module
                 die;*/
             }
         }
-        
     }
     
     public function displayFile($sm)
