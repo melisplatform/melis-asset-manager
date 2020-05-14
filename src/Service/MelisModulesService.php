@@ -19,19 +19,29 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 class MelisModulesService implements ServiceLocatorAwareInterface
 {
-    /** @var \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator */
-    public $serviceLocator;
-
     /**
      * @var Composer
      */
     protected $composer;
 
-    public $melisComposer;
-
-    public function __construct()
+    /**
+     * @return \Zend\ServiceManager\ServiceLocatorInterface
+     */
+    public function getServiceLocator()
     {
-        $this->melisComposer = new \MelisComposerDeploy\MelisComposer();
+        return $this->serviceLocator;
+    }
+
+    /**
+     * @param \Zend\ServiceManager\ServiceLocatorInterface $sl
+     *
+     * @return $this
+     */
+    public function setServiceLocator(ServiceLocatorInterface $sl)
+    {
+        $this->serviceLocator = $sl;
+
+        return $this;
     }
 
     /**
@@ -44,13 +54,11 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     public function getModulesAndVersions($moduleName = null)
     {
         $tmpModules = [];
-        $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
 
-        $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
-        $composer = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+        $melisComposer = new \MelisComposerDeploy\MelisComposer();
+        $melisInstalledPackages = $melisComposer->getInstalledPackages();
 
-
-        foreach ($composer as $package) {
+        foreach ($melisInstalledPackages as $package) {
             $packageModuleName = isset($package->extra) ? (array) $package->extra : null;
             $module = null;
             if (isset($packageModuleName['module-name'])) {
@@ -76,6 +84,9 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         foreach ($userModules as $module) {
             if (!in_array($module, $exclusions)) {
                 $class = $_SERVER['DOCUMENT_ROOT'] . '/../module/' . $module . '/Module.php';
+                if (!file_exists($class))
+                    continue;
+
                 $class = file_get_contents($class);
 
                 $package = $module;
@@ -93,7 +104,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
                     'module' => $package,
                     'version' => $version,
                 ];
-
             }
         }
 
@@ -205,18 +215,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
         return $modules;
     }
 
-    public static function modulesConfigPath()
-    {
-        $appConfig = $_SERVER['DOCUMENT_ROOT'] . '/../config/';
-
-        $modulesPathConfig = $appConfig . 'melis.modules.path.php';
-
-        if (file_exists($modulesPathConfig))
-            return require $modulesPathConfig;
-
-        return null;
-    }
-
     /**
      * Returns all the modules that has been created by Melis
      *
@@ -237,12 +235,9 @@ class MelisModulesService implements ServiceLocatorAwareInterface
     /**
      * Returns all the modules
      */
-    public function getAllModules($composerPackages = false)
+    public function getAllModules()
     {
-        if ($composerPackages){
-            return array_merge($this->getUserModules(), $this->getVendorModules());
-        } else
-            return array_keys(self::modulesConfigPath());
+        return array_merge($this->getUserModules(), $this->getVendorModules());
     }
 
     /**
@@ -251,47 +246,26 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     public function getVendorModules()
     {
-        $packagesCacheDir = $_SERVER['DOCUMENT_ROOT'] . '/../cache/composer_packages/';
-        $melisPackages = $packagesCacheDir . 'melis_packages.dat';
+        $melisComposer = new \MelisComposerDeploy\MelisComposer();
+        $melisInstalledPackages = $melisComposer->getInstalledPackages();
 
-        if (file_exists($melisPackages)) {
-            $modules = unserialize(file_get_contents($melisPackages));
-        } else {
-            $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
-            $repoPackages = $repos->getPackages();
+        $packages = array_filter($melisInstalledPackages, function ($package) {
 
-            $packages = array_filter($repoPackages, function ($package) {
-                /** @var CompletePackage $package */
-                return $package->getType() === 'melisplatform-module' &&
-                    array_key_exists('module-name', $package->getExtra());
-            });
-    
-            $modules = array_map(function ($package) {
-                /** @var CompletePackage $package */
-                return $package->getExtra()['module-name'];
-            }, $packages);
-    
-            sort($modules);
+            $type = $package->type;
+            $extra = $package->extra ?? [];
 
-            try {
-                if (!is_dir($packagesCacheDir)) {
-                    mkdir($packagesCacheDir, 0777);
-                }
+            /** @var CompletePackage $package */
+            return $type === 'melisplatform-module' &&
+                array_key_exists('module-name', $extra);
+        });
 
-                $fd = fopen($melisPackages, 'w');
-                if ($fd) {
-                    fwrite($fd, serialize($modules));
-                    fclose($fd);
-                    chmod($melisPackages, 0777);
-                } else {
-                    /*echo "Error generating file $modulePathFile : check rights";
-                    die;*/
-                }
-            } catch (\Exception $e) {
-                /*echo "Error generating file $modulePathFile : check rights";
-                die;*/
-            }
-        }
+        $modules = array_map(function ($package) {
+            $extra = (array) $package->extra;
+            /** @var CompletePackage $package */
+            return $extra['module-name'];
+        }, $packages);
+
+        sort($modules);
 
         return $modules;
     }
@@ -360,7 +334,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     public function getDependencies($moduleName, $convertPackageNameToNamespace = true)
     {
-        $modulePath = $this->getComposerModulePath($moduleName);
+        $modulePath = $this->getModulePath($moduleName);
         $dependencies = [];
 
         if ($modulePath) {
@@ -415,25 +389,12 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      *
      * @return string
      */
-    public function getModulePath($module, $relativePath = true) 
+    public function getModulePath($moduleName, $returnFullPath = true)
     {
-        // Modules path from config 
-        $modulesPath = self::modulesConfigPath();
-
-        $path = '';
-
-        if (is_null($modulesPath))
-            $path = $this->getUserModulePath($module, $relativePath);
-
-        if (!empty($modulesPath[$module])) {
-            if (!$relativePath)
-                $path = $modulesPath[$module];
-            else
-                $path = $_SERVER['DOCUMENT_ROOT'].'/..'.$modulesPath[$module];
+        $path = $this->getUserModulePath($moduleName, $returnFullPath);
+        if ($path == '') {
+            $path = $this->getComposerModulePath($moduleName, $returnFullPath);
         }
-
-        if (!$path) 
-            $path = $this->melisComposer->getComposerModulePath($module, $relativePath);
 
         return $path;
     }
@@ -458,39 +419,12 @@ class MelisModulesService implements ServiceLocatorAwareInterface
 
     public function getComposerModulePath($moduleName, $returnFullPath = true)
     {
-        $modulesPathsConfig = self::modulesConfigPath();
-
-        if (!is_null($modulesPathsConfig)) {
-            return $this->getModulePath($moduleName, $returnFullPath);
-        } else {
-            return $this->melisComposer->getComposerModulePath($moduleName, $returnFullPath);
-        }
-
-        return '';
+        $melisComposer = new \MelisComposerDeploy\MelisComposer();
+        return $melisComposer->getComposerModulePath($moduleName, $returnFullPath);
     }
 
     /**
-     * @return \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    /**
-     * @param \Zend\ServiceManager\ServiceLocatorInterface $sl
-     *
-     * @return $this
-     */
-    public function setServiceLocator(ServiceLocatorInterface $sl)
-    {
-        $this->serviceLocator = $sl;
-
-        return $this;
-    }
-
-    /**
-     * Returns all the modules that has been loaded in zend
+     * Returns all the modules that has been loaded in laminas
      *
      * @param array $exclude
      *
@@ -616,7 +550,6 @@ class MelisModulesService implements ServiceLocatorAwareInterface
                 } else {
                     array_unshift($modules, $module);
                 }
-
             }
 
             foreach ($bottomModules as $module) {
@@ -629,6 +562,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
 
             $config = new Config($modules, true);
             $writer = new PhpArray();
+            $writer->setUseBracketArraySyntax(true);
             $conf = $writer->toString($config);
             $conf = preg_replace('/    \d+/u', '', $conf); // remove the number index
             $conf = str_replace('=>', '', $conf); // remove the => characters.
@@ -735,14 +669,12 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     public function isSiteModule($module)
     {
-        $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
-
-        $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
-        $composer = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+        $melisComposer = new \MelisComposerDeploy\MelisComposer();
+        $packages = $melisComposer->getInstalledPackages();
 
         $repo = null;
 
-        foreach ($composer as $package) {
+        foreach ($packages as $package) {
             $packageModuleName = isset($package->extra) ? (array) $package->extra : null;
 
             if (isset($packageModuleName['module-name']) && $packageModuleName['module-name'] == $module) {
