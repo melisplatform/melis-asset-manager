@@ -500,7 +500,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      * This method activating a single module
      * and store to the module.load.php of the platform
      *
-     * @param $module
+     * @param mixed $module
      *
      * @return bool
      */
@@ -518,8 +518,21 @@ class MelisModulesService implements ServiceLocatorAwareInterface
                 unset($activeModules[$key]);
             }
         }
+        if (!is_array($module))
+            $module[] = $module;
 
-        array_push($activeModules, $module);
+        // Activate only that is not activated yet
+        $modules = array_filter($module, function($mod) use ($activeModules) {
+
+            if (!in_array($mod, $activeModules))
+                return $mod;
+        });
+
+        // Module(s) is already activated
+        if (empty($modules))
+            return;
+
+        $activeModules = array_merge($activeModules, $modules);
 
         // Creating/updating module.load.php including new module
         return $this->createModuleLoader('config/', $activeModules, $defaultModules);
