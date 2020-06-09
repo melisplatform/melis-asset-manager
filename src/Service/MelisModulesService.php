@@ -25,26 +25,6 @@ class MelisModulesService extends MelisServiceManager
     protected $composer;
 
     /**
-     * @return \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    /**
-     * @param \Zend\ServiceManager\ServiceLocatorInterface $sl
-     *
-     * @return $this
-     */
-    public function setServiceLocator(ServiceLocatorInterface $sl)
-    {
-        $this->serviceLocator = $sl;
-
-        return $this;
-    }
-
-    /**
      * Returns the module name, module package, and its' version
      *
      * @param null $moduleName - provide the module name if you want to get the package specific information
