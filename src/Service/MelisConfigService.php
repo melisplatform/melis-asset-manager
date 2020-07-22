@@ -354,9 +354,7 @@ class MelisConfigService extends MelisServiceManager implements MelisConfigServi
 
     public function translateAppConfig($array)
     {
-//        $translator = $this->getServiceManager()->get('translator');
-
-        $translator = new Translator();
+        $translator = $this->getServiceManager()->get('translator');
 
         $final = [];
         foreach ($array as $key => $value) {
