@@ -1,7 +1,7 @@
 <?php
 namespace MelisAssetManager\Controller;
 
-use Laminas\Mvc\Controller\MelisAbstractActionController;
+use MelisCore\Controller\MelisAbstractActionController;
 
 class WebPackController extends MelisAbstractActionController
 {
