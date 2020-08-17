@@ -1,43 +1,40 @@
 {
-    "name": "melisplatform/melis-asset-manager",
-    "type": "melisplatform-module",
-    "license": "OSL-3.0",
-    "homepage": "https://github.com/melisplatform/melis-asset-manager",
-    "support": {
-        "email": "contact@melistechnology.com",
-        "source": "https://github.com/melisplatform/melis-asset-manager",
-        "issues": "https://github.com/melisplatform/melis-asset-manager/issues",
-        "docs": "https://www.melistechnology.com/melistechnology/resources/download-documentation/id/17#documentation"
-    },
-    "authors": [
-        {
-            "name": "Melis Technology",
-            "email": "contact@melistechnology.com",
-            "homepage": "https://www.melistechnology.com",
-            "role": "Developer"
-        }
-    ],
-    "keywords": [
-        "cms",
-        "melis",
-        "zf2",
-        "module"
-    ],
-    "extra": {
-        "module-name": "MelisAssetManager",
-        "melis-site": false,
-        "melis-module-category": "core"
-    },
-    "require": {
-        "php": "^5.5 || ^7.0",
-        "ext-openssl": "*",
-        "ext-json": "*",
-        "ext-pdo_mysql": "*",
-        "justinrainbow/json-schema": "5.2.1"
-    },
-    "autoload": {
-        "psr-4": {
-            "MelisAssetManager\\": "src/"
-        }
-    }
+	"name": "melisplatform/melis-asset-manager",
+	"type": "melisplatform-module",
+	"license": "OSL-3.0",
+	"homepage": "https://github.com/melisplatform/melis-asset-manager",
+	"support": {
+		"email": "contact@melistechnology.com",
+		"source": "https://github.com/melisplatform/melis-asset-manager",
+		"issues": "https://github.com/melisplatform/melis-asset-manager/issues",
+		"docs": "https://www.melistechnology.com/melistechnology/resources/download-documentation/id/17#documentation"
+	},
+	"authors": [
+		{
+			"name": "Melis Technology",
+			"email": "contact@melistechnology.com",
+			"homepage": "https://www.melistechnology.com",
+			"role": "Developer"
+		}
+	],
+	"keywords": [
+		"cms",
+		"melis",
+		"zf2",
+		"module"
+	],
+	"extra": {
+		"module-name": "MelisAssetManager",
+		"melis-site": false,
+		"melis-module-category": "core"
+	},
+	"require": {
+		"php": "^7.1.3|^7.2|^7.3",
+		"melisplatform/melis-core": "^4.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"MelisAssetManager\\": "src/"
+		}
+	}
 }
