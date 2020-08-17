@@ -3,10 +3,10 @@
 namespace MelisAssetManager\Service;
 
 use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use Laminas\ServiceManager\ServiceManager;
+use MelisCore\Service\MelisServiceManager;
 
-class MelisWebPackService implements ServiceLocatorAwareInterface
+class MelisWebPackService extends MelisServiceManager
 {
     /**
      * Type of method that will be used to build a CSS
@@ -34,11 +34,6 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      * @var array
      */
     private $cacheFiles = [];
-
-    /**
-     * @var ServiceLocatorAwareInterface
-     */
-    private $serviceLocator;
 
     /**
      * Returns the assets whether build or not
@@ -123,31 +118,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      */
     private function config()
     {
-        return $this->getServiceLocator()->get('MelisConfig');
-    }
-
-    /**
-     * get the Service Locator
-     *
-     * @return void
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    /**
-     * Setter for ServiceLocator
-     *
-     * @param ServiceLocatorInterface $sl
-     *
-     * @return $this
-     */
-    public function setServiceLocator(ServiceLocatorInterface $sl)
-    {
-        $this->serviceLocator = $sl;
-
-        return $this;
+        return $this->getServiceManager()->get('MelisConfig');
     }
 
     /**
@@ -187,7 +158,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      */
     public function getMergedAssets($useBundle = false)
     {
-        $plugin = new MelisHeadPluginHelper($this->getServiceLocator());
+        $plugin = new MelisHeadPluginHelper($this->getServiceManager());
         $assets = $plugin->__invoke('/', $useBundle);
 
         return $assets;
@@ -327,7 +298,7 @@ class MelisWebPackService implements ServiceLocatorAwareInterface
      */
     private function module()
     {
-        return $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+        return $this->getServiceManager()->get('MelisAssetManagerModulesService');
     }
 
     private function mixFilePrefix()

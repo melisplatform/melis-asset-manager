@@ -2,7 +2,7 @@
 
 namespace MelisAssetManager\View\Helper;
 
-use Zend\View\Helper\AbstractHelper;
+use Laminas\View\Helper\AbstractHelper;
 
 abstract class AbstractMelisIconsHelper extends AbstractHelper
 {

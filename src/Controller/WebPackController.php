@@ -1,10 +1,10 @@
 <?php
 namespace MelisAssetManager\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-class WebPackController extends AbstractActionController
-{
+use MelisCore\Controller\MelisAbstractActionController;
 
+class WebPackController extends MelisAbstractActionController
+{
     /**
      * This action generates a webpack.mix.js file that will be used build a compiled
      * CSS and JS
@@ -31,7 +31,7 @@ class WebPackController extends AbstractActionController
      */
     private function webpack()
     {
-        return $this->getServiceLocator()->get('MelisAssetManagerWebPack');
+        return $this->getServiceManager()->get('MelisAssetManagerWebPack');
     }
 
 

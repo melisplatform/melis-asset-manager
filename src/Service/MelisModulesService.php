@@ -12,37 +12,17 @@ use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
-use Zend\Config\Config;
-use Zend\Config\Writer\PhpArray;
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use Laminas\Config\Config;
+use Laminas\Config\Writer\PhpArray;
+use Laminas\ServiceManager\ServiceManager;
+use MelisCore\Service\MelisServiceManager;
 
-class MelisModulesService implements ServiceLocatorAwareInterface
+class MelisModulesService extends MelisServiceManager
 {
     /**
      * @var Composer
      */
     protected $composer;
-
-    /**
-     * @return \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    /**
-     * @param \Zend\ServiceManager\ServiceLocatorInterface $sl
-     *
-     * @return $this
-     */
-    public function setServiceLocator(ServiceLocatorInterface $sl)
-    {
-        $this->serviceLocator = $sl;
-
-        return $this;
-    }
 
     /**
      * Returns the module name, module package, and its' version
@@ -374,7 +354,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
 
             if ($convertPackageNameToNamespace) {
                 $tmpDependencies = [];
-                $toolSvc = $this->getServiceLocator()->get('MelisCoreTool');
+                $toolSvc = $this->getServiceManager()->get('MelisCoreTool');
 
                 foreach ($dependencies as $dependency) {
                     $tmpDependencies[] = ucfirst($toolSvc->convertToNormalFunction($dependency));
@@ -438,7 +418,7 @@ class MelisModulesService implements ServiceLocatorAwareInterface
      */
     public function getActiveModules($exclude = [])
     {
-        $mm = $this->getServiceLocator()->get('ModuleManager');
+        $mm = $this->getServiceManager()->get('ModuleManager');
         $loadedModules = array_keys($mm->getLoadedModules());
         $pluginModules = $this->getModulePlugins();
         $modules = [];

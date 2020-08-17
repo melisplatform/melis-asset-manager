@@ -2,15 +2,15 @@
 
 namespace MelisAssetManager\View\Helper;
 
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\View\Helper\AbstractHelper;
+use Laminas\ServiceManager\ServiceManager;
+use Laminas\View\Helper\AbstractHelper;
 use MelisCore\Library\MelisAppConfig;
 
 class MelisHeadPluginHelper extends AbstractHelper
 {
 
     /**
-     * @var ServiceLocatorAwareInterface
+     * @var ServiceManager $serviceManager
      */
 	public $serviceManager;
 

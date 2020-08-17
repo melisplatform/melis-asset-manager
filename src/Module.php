@@ -9,11 +9,11 @@
 
 namespace MelisAssetManager;
 
-use Zend\Mvc\ModuleRouteListener;
-use Zend\Mvc\MvcEvent;
-use Zend\ModuleManager\ModuleManager;
-use Zend\ModuleManager\ModuleEvent;
-use Zend\Stdlib\ArrayUtils;
+use Laminas\Mvc\ModuleRouteListener;
+use Laminas\Mvc\MvcEvent;
+use Laminas\ModuleManager\ModuleManager;
+use Laminas\ModuleManager\ModuleEvent;
+use Laminas\Stdlib\ArrayUtils;
 
 /**
  * Minify Classes
@@ -45,7 +45,6 @@ class Module
     {
         $eventManager = $manager->getEventManager();
         $eventManager->attach(ModuleEvent::EVENT_LOAD_MODULES_POST, [$this, 'onLoadModulesPost']);
-
     }
     
     public function onLoadModulesPost(ModuleEvent $event)
@@ -209,8 +208,7 @@ class Module
         $mime   = $this->getMimeType($pathFile);
 
         // if php file, we need to eval
-        if ($mime == 'application/x-httpd-php')
-        {
+        if ($mime == 'application/x-httpd-php') {
             header('HTTP/1.0 200 OK');
             header("Content-Type: text/html; charset=UTF-8" . $mime);
 
@@ -220,8 +218,7 @@ class Module
             $folderPath = implode('/', $folderPath);
             
             eval ( ' chdir("' . $folderPath . '"); require "' . $fileName . '";' );
-        }
-        else {
+        } else {
 
             $content = file_get_contents($pathFile);
 
@@ -236,36 +233,34 @@ class Module
             header("Cache-Control: max-age=$seconds_to_cache");
 
             print $content;
-
         }
 
-        
         die;
     }
     
     public function getConfig()
     {
-        $config = array();
-        $configFiles = array(
-                include __DIR__ . '/../config/module.config.php',
-        );
-        
-        foreach ($configFiles as $file) {
-            $config = ArrayUtils::merge($config, $file);
-        } 
-        
-        return $config;
+    	$config = [];
+    	$configFiles = [
+    			include __DIR__ . '/../config/module.config.php',
+    	];
+
+    	foreach ($configFiles as $file) {
+    		$config = ArrayUtils::merge($config, $file);
+    	}
+
+    	return $config;
     }
 
     public function getAutoloaderConfig()
     {
-        return array(
-            'Zend\Loader\StandardAutoloader' => array(
-                'namespaces' => array(
+        return [
+            'Laminas\Loader\StandardAutoloader' => [
+                'namespaces' => [
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
     }
 
 }
