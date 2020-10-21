@@ -24,6 +24,12 @@ class MelisModulesService extends MelisServiceManager
      */
     protected $composer;
 
+
+    public function getMelisActiveModules()
+    {
+        return \MelisCore\MelisModuleManager::getModules();
+    }
+
     /**
      * Returns the module name, module package, and its' version
      *
@@ -522,21 +528,31 @@ class MelisModulesService extends MelisServiceManager
      * @return bool
      */
     public function createModuleLoader($pathToStore, $modules = [],
-                                       $topModules = ['melisdbdeploy', 'meliscomposerdeploy', 'meliscore'],
-                                       $bottomModules = ['MelisModuleConfig'])
+                                    $topModules = ['melisassetmanager', 'melisdbdeploy', 'meliscomposerdeploy', 'meliscore'],
+                                    $bottomModules = ['MelisModuleConfig'])
     {
         $tmpFileName = 'melis.module.load.php.tmp';
         $fileName = 'melis.module.load.php';
         if ($this->checkDir($pathToStore)) {
             $coreModules = $this->getCoreModules();
+
             $topModules = array_reverse($topModules);
+
             foreach ($topModules as $module) {
-                if (isset($coreModules[$module]) && $coreModules[$module]) {
-                    array_unshift($modules, $coreModules[$module]);
-                } else {
-                    array_unshift($modules, $module);
+                if(!in_array($coreModules[$module], $modules)){
+                    if (isset($coreModules[$module]) && $coreModules[$module]) {
+                        array_unshift($modules, $coreModules[$module]);
+                    } else {
+                        array_unshift($modules, $module);
+                    }
                 }
             }
+
+            $modules = array_filter($modules, function($module) use ($bottomModules) {
+                if (!in_array($module, $bottomModules)) {
+                    return $module;
+                }
+            });
 
             foreach ($bottomModules as $module) {
                 if (isset($coreModules[$module]) && $coreModules[$module]) {
@@ -568,7 +584,6 @@ class MelisModulesService extends MelisServiceManager
                     return true;
                 }
             }
-
         }
 
         return false;
