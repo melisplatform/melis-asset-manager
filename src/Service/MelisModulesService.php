@@ -470,11 +470,11 @@ class MelisModulesService extends MelisServiceManager
     public function getCoreModules($excludeModulesOnReturn = [])
     {
         $modules = [
+            'melisassetmanager' => 'MelisAssetManager',
             'melisdbdeploy' => 'MelisDbDeploy',
             'meliscomposerdeploy' => 'MelisComposerDeploy',
             'meliscore' => 'MelisCore',
-            'melissites' => 'MelisSites',
-            'melisassetmanager' => 'MelisAssetManager',
+            // 'melissites' => 'MelisSites',
         ];
 
         if ($excludeModulesOnReturn) {
@@ -534,35 +534,42 @@ class MelisModulesService extends MelisServiceManager
         $tmpFileName = 'melis.module.load.php.tmp';
         $fileName = 'melis.module.load.php';
         if ($this->checkDir($pathToStore)) {
+            // Core modules
             $coreModules = $this->getCoreModules();
 
-            $topModules = array_reverse($topModules);
+            $melisModules = array_values($coreModules);
 
-            foreach ($topModules as $module) {
-                if(!in_array($coreModules[$module], $modules)){
-                    if (isset($coreModules[$module]) && $coreModules[$module]) {
-                        array_unshift($modules, $coreModules[$module]);
-                    } else {
-                        array_unshift($modules, $module);
-                    }
-                }
-            }
-
-            $modules = array_filter($modules, function($module) use ($bottomModules) {
-                if (!in_array($module, $bottomModules)) {
+            // Removing  core top modules from $modules
+            $modules = array_filter($modules, function($module) use ($coreModules) {
+                if (!in_array($module, $coreModules)) {
                     return $module;
                 }
             });
 
-            foreach ($bottomModules as $module) {
-                if (isset($coreModules[$module]) && $coreModules[$module]) {
-                    array_push($modules, $coreModules[$module]);
-                } else {
-                    array_push($modules, $module);
-                }
-            }
+            // Adding non-top core modules to list of modules
+            foreach ($topModules as $module) 
+                if (!isset($coreModules[$module]) && !in_array($module, $melisModules)) 
+                    $melisModules[] = $module;
 
-            $config = new Config($modules, true);
+            // Adding modules to list of modules to be store on melis.module.load.php
+            foreach ($modules As $module)
+                if(!in_array($module, $melisModules))
+                    $melisModules[] = $module;
+
+            // Removing  bottom modules from $modules
+            foreach ($bottomModules As $module)
+                if(!in_array($module, $melisModules))
+                    $melisModules[] = $module;
+
+            // Adding MelisModuleConfig as  bottom module
+            $melisModuleConfig = 'MelisModuleConfig';
+            // Removing first MelisModuleConfig from the list to make sure this will be added to the last 
+            if (($modKey = array_search($melisModuleConfig, $melisModules)) !== false) 
+                unset($melisModules[$modKey]);
+            // Bottom module
+            $melisModules[] = $melisModuleConfig;
+
+            $config = new Config($melisModules, true);
             $writer = new PhpArray();
             $writer->setUseBracketArraySyntax(true);
             $conf = $writer->toString($config);
