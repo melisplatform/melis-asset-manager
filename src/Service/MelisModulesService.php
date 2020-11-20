@@ -245,8 +245,14 @@ class MelisModulesService extends MelisServiceManager
             if (!empty($extra)) {
 
                 if (property_exists($extra, 'melis-module')) {
+                    $tmp = (array)$extra;
+                    $modulePath = null;
+                    if (! empty($tmp)) {
+                        $moduleName = isset($tmp['module-name']) ? $tmp['module-name'] : null;
+                        $modulePath = $this->getModulePath($moduleName);
+                    }
                     $key = 'melis-module';
-                    if (!$extra->$key)
+                    if (!$extra->$key && empty($modulePath))
                         $isMelisModule = false;
                 }
 
