@@ -148,7 +148,7 @@ class Module
         
         // First check if asset in main public folder
         $pathFile = $_SERVER['DOCUMENT_ROOT'] . $UriWithoutParams;
-        if (is_file($pathFile))
+        if (is_file($pathFile) && $this->checkFileInFolder($pathFile, $_SERVER['DOCUMENT_ROOT']))
             $this->sendDocument($pathFile, $UriParams);
         else
         {
@@ -181,7 +181,7 @@ class Module
     
                         if ($pathFile != '')
                         {
-                            if (is_file($pathFile))
+                            if (is_file($pathFile) && $this->checkFileInFolder($pathFile, $path . '/public/'))
                                 $this->sendDocument($pathFile, $UriParams);
                         }
                     }
@@ -263,4 +263,18 @@ class Module
         ];
     }
 
+     /*checks if the file is inside the given folder*/
+    protected function checkFileInFolder($file, $folder)
+    {       
+        $path = realpath($file);        
+        if ($path !== false) {
+            if (strpos($path, realpath($folder)) !== 0) {                   
+                throw new \Exception('Requested resource is outside of ' . $folder);
+            } else {              
+                return true;
+            }
+        } else {                   
+            return false;
+        }
+    }
 }
