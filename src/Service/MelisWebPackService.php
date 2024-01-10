@@ -130,7 +130,7 @@ class MelisWebPackService extends MelisServiceManager
     {
         $webPackPath = $_SERVER['DOCUMENT_ROOT'];
         $file = self::WEBPACK_FILE;
-        $webpack = $webPackPath . DIRECTORY_SEPARATOR . $file;
+        $webpack = $webPackPath .DIRECTORY_SEPARATOR.'..'. DIRECTORY_SEPARATOR . $file;
 
         return $webpack;
     }
@@ -144,7 +144,7 @@ class MelisWebPackService extends MelisServiceManager
     {
         $webPackPath = $_SERVER['DOCUMENT_ROOT'];
         $file = self::WEBPACK_STATIC_FILE;
-        $webpack = $webPackPath . DIRECTORY_SEPARATOR . $file;
+        $webpack = $webPackPath .DIRECTORY_SEPARATOR.'..'. DIRECTORY_SEPARATOR . $file;
 
         return $webpack;
     }
