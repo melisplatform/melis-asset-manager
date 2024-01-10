@@ -362,7 +362,7 @@ class MelisConfigService extends MelisServiceManager implements MelisConfigServi
                 $children = $this->translateAppConfig($value);
                 $final[$key] = $children;
             } else {
-                if (substr($value, 0, 3) == 'tr_') {
+                if (is_string($value) && substr($value, 0, 3) == 'tr_') {
                     $value = $translator->translate($value);
                 }
                 $final[$key] = $value;
