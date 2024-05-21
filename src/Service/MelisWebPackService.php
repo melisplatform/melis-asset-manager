@@ -38,12 +38,16 @@ class MelisWebPackService extends MelisServiceManager
     /**
      * Returns the assets whether build or not
      *
+     * @param bool $returnBundle
      * @return array
      */
-    public function getAssets()
+    public function getAssets($returnBundle = true)
     {
-        $assets = [];
+        /**
+         * Process the module assets
+         */
         $resources = $this->config()->getItem('meliscore/ressources');
+
         $useBuildAssets = (bool) $resources['build']['use_build_assets'];
 
         $cssBuild = $resources['build']['css'];
@@ -110,8 +114,24 @@ class MelisWebPackService extends MelisServiceManager
 
         }
 
+        /**
+         * check if we return the bundle all or the default one
+         */
+        if($returnBundle) {
+            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bundles-generated/css/bundle-all.css')) {
+                $assets['css'] = [];
+                $assets['css'][] = '/bundles-generated/css/bundle-all.css';
+            }
+
+            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bundles-generated/js/bundle-all.js')) {
+                $assets['js'] = [];
+                $assets['js'][] = '/bundles-generated/js/bundle-all.js';
+            }
+        }
+
         return $assets;
     }
+
 
     /**
      * @return \MelisAssetManager\Service\MelisConfigService
@@ -120,6 +140,21 @@ class MelisWebPackService extends MelisServiceManager
     {
         return $this->getServiceManager()->get('MelisConfig');
     }
+
+    /**
+     * Returns the path of "webpack.mix.unified.js"
+     *
+     * @return string
+     */
+    public function getWebPackMixGlobalFile()
+    {
+        $webPackPath = $_SERVER['DOCUMENT_ROOT'];
+        $file = self::WEBPACK_UNIFIED_FILE;
+        $webpack = $webPackPath . DIRECTORY_SEPARATOR . $file;
+
+        return $webpack;
+    }
+
 
     /**
      * Returns the path of "webpack.mix.js"
