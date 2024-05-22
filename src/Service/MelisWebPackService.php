@@ -120,12 +120,12 @@ class MelisWebPackService extends MelisServiceManager
         if($returnBundle) {
             if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bundles-generated/css/bundle-all.css')) {
                 $assets['css'] = [];
-                $assets['css'][] = '/bundles-generated/css/bundle-all.css';
+                $assets['css'][] = '/bundles-generated/css/bundle-all.css?v='.time();
             }
 
             if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bundles-generated/js/bundle-all.js')) {
                 $assets['js'] = [];
-                $assets['js'][] = '/bundles-generated/js/bundle-all.js';
+                $assets['js'][] = '/bundles-generated/js/bundle-all.js?v='.time();
             }
         }
 
@@ -140,21 +140,6 @@ class MelisWebPackService extends MelisServiceManager
     {
         return $this->getServiceManager()->get('MelisConfig');
     }
-
-    /**
-     * Returns the path of "webpack.mix.unified.js"
-     *
-     * @return string
-     */
-    public function getWebPackMixGlobalFile()
-    {
-        $webPackPath = $_SERVER['DOCUMENT_ROOT'];
-        $file = self::WEBPACK_UNIFIED_FILE;
-        $webpack = $webPackPath . DIRECTORY_SEPARATOR . $file;
-
-        return $webpack;
-    }
-
 
     /**
      * Returns the path of "webpack.mix.js"
