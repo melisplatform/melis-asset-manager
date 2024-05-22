@@ -4,6 +4,7 @@ namespace MelisAssetManager\Service;
 
 use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
 use Laminas\ServiceManager\ServiceManager;
+use MelisCore\Controller\ModulesController;
 use MelisCore\Service\MelisServiceManager;
 
 class MelisWebPackService extends MelisServiceManager
@@ -118,14 +119,14 @@ class MelisWebPackService extends MelisServiceManager
          * check if we return the bundle all or the default one
          */
         if($returnBundle) {
-            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bundles-generated/css/bundle-all.css')) {
+            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/'.ModulesController::BUNDLE_FOLDER_NAME.'/css/bundle-all.css')) {
                 $assets['css'] = [];
-                $assets['css'][] = '/bundles-generated/css/bundle-all.css?v='.time();
+                $assets['css'][] = '/'.ModulesController::BUNDLE_FOLDER_NAME.'/css/bundle-all.css?v='.time();
             }
 
-            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bundles-generated/js/bundle-all.js')) {
+            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/'.ModulesController::BUNDLE_FOLDER_NAME.'/js/bundle-all.js')) {
                 $assets['js'] = [];
-                $assets['js'][] = '/bundles-generated/js/bundle-all.js?v='.time();
+                $assets['js'][] = '/'.ModulesController::BUNDLE_FOLDER_NAME.'/js/bundle-all.js?v='.time();
             }
         }
 
