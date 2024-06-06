@@ -119,20 +119,22 @@ class MelisWebPackService extends MelisServiceManager
          * check if we return the bundle all or the default one
          */
         if($returnBundle) {
-            $platformTable = $this->getServiceManager()->get('MelisCoreTablePlatform');
-            $platformData = $platformTable->getEntryByField('plf_name', getenv('MELIS_PLATFORM'))->current();
-            $time = '';
-            if(!empty($platformData))
-                $time = '?v='.$platformData->plf_bundle_cache_time;
+            if($this->getServiceManager()->has('MelisCoreTablePlatform')) {
+                $platformTable = $this->getServiceManager()->get('MelisCoreTablePlatform');
+                $platformData = $platformTable->getEntryByField('plf_name', getenv('MELIS_PLATFORM'))->current();
+                $time = '';
+                if (!empty($platformData))
+                    $time = '?v=' . $platformData->plf_bundle_cache_time;
 
-            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/'.ModulesController::BUNDLE_FOLDER_NAME.'/css/bundle-all.css')) {
-                $assets['css'] = [];
-                $assets['css'][] = '/'.ModulesController::BUNDLE_FOLDER_NAME.'/css/bundle-all.css'.$time;
-            }
+                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/css/bundle-all.css')) {
+                    $assets['css'] = [];
+                    $assets['css'][] = '/' . ModulesController::BUNDLE_FOLDER_NAME . '/css/bundle-all.css' . $time;
+                }
 
-            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/'.ModulesController::BUNDLE_FOLDER_NAME.'/js/bundle-all.js')) {
-                $assets['js'] = [];
-                $assets['js'][] = '/'.ModulesController::BUNDLE_FOLDER_NAME.'/js/bundle-all.js'.$time;
+                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js')) {
+                    $assets['js'] = [];
+                    $assets['js'][] = '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js' . $time;
+                }
             }
         }
 
