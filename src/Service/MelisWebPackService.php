@@ -133,6 +133,7 @@ class MelisWebPackService extends MelisServiceManager
 
                 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js')) {
                     $assets['js'] = [];
+                    $assets['js'][] = '/melis/get-translations';
                     $assets['js'][] = '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js' . $time;
                 }
             }
