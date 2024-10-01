@@ -198,6 +198,54 @@ class MelisModulesService extends MelisServiceManager
             $modules = $this->getDir($userModules);
         }
 
+        $modules = array_merge($modules, $this->getVendorSites());
+
+        return $modules;
+    }
+
+    /**
+     * @return array
+     */
+    public function getVendorSites()
+    {
+        $melisComposer = new \MelisComposerDeploy\MelisComposer();
+        $melisInstalledPackages = $melisComposer->getInstalledPackages();
+
+        $packages = array_filter($melisInstalledPackages, function ($package) {
+
+            $type = $package->type;
+            $extra = $package->extra ?? [];
+            $isVendorSite = false;
+
+            if (!empty($extra)) {
+
+                if (property_exists($extra, 'melis-site')) {
+                    $tmp = (array)$extra;
+
+                    $modulePath = null;
+                    if (! empty($tmp)) {
+                        $moduleName = isset($tmp['module-name']) ? $tmp['module-name'] : null;
+                        $modulePath = $this->getModulePath($moduleName);
+                    }
+                    $key = 'melis-site';
+                    if ($extra->$key && !empty($modulePath))
+                        $isVendorSite = true;
+                }
+
+                /** @var CompletePackage $package */
+                return $type === 'melisplatform-module' &&
+                    property_exists($extra, 'module-name') && $isVendorSite;
+            }
+        });
+
+        $modules = array_map(function ($package) {
+            $extra = (array) $package->extra;
+            /** @var CompletePackage $package */
+            return $extra['module-name'];
+        }, $packages);
+
+        sort($modules);
+
         return $modules;
     }
 
