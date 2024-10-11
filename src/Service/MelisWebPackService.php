@@ -126,15 +126,18 @@ class MelisWebPackService extends MelisServiceManager
                 if (!empty($platformData))
                     $time = '?v=' . $platformData->plf_bundle_cache_time;
 
-                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/css/bundle-all.css')) {
+                $docroot = $_SERVER['DOCUMENT_ROOT'];
+                $bundleFolder = $docroot.'/../etc';
+
+                if (file_exists($bundleFolder . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/css/bundle-all.css')) {
                     $assets['css'] = [];
-                    $assets['css'][] = '/' . ModulesController::BUNDLE_FOLDER_NAME . '/css/bundle-all.css' . $time;
+                    $assets['css'][] = '/melis/get-css-bundles'.$time;
                 }
 
-                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js')) {
+                if (file_exists($bundleFolder . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js')) {
                     $assets['js'] = [];
                     $assets['js'][] = '/melis/get-translations';
-                    $assets['js'][] = '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js' . $time;
+                    $assets['js'][] = '/melis/get-js-bundles'.$time;
                 }
             }
         }
