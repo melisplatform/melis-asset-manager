@@ -1,10 +1,10 @@
 <?php
 namespace MelisAssetManager\View\Helper;
 
-class MelisCmsIconHelper extends AbstractMelisIconsHelper
+class MelisMarketingIconHelper extends AbstractMelisIconsHelper
 {
     /** @var const BACKGROUND */
-    const BACKGROUND = '#69b344';
+    const BACKGROUND = '#f8b100';
 
     /** @var const FOREGROUND */
     const FOREGROUND = '#ffffff';

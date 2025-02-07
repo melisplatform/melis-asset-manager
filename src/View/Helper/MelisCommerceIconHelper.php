@@ -15,7 +15,7 @@ class MelisCommerceIconHelper extends AbstractMelisIconsHelper
      * Orig: const FOREGROUND = '#2780c4';
      * Interchanged color hex based on melis-commerce logo https://www.melistechnology.com/
      */
-    const FOREGROUND = '#3997d4';
+    const FOREGROUND = '#ffffff';
     /**
      * @param int $width
      * @param int $height

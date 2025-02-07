@@ -4,10 +4,10 @@ namespace MelisAssetManager\View\Helper;
 class MelisOthersIconHelper extends AbstractMelisIconsHelper
 {
     /** @var const BACKGROUND */
-    const BACKGROUND = '#C52127';
+    const BACKGROUND = '#ff0000'; // #C52127
 
     /** @var const FOREGROUND */
-    const FOREGROUND = '#E71E26';
+    const FOREGROUND = '#ffffff';
     /**
      * @param int $width
      * @param int $height

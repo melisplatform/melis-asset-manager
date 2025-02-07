@@ -7,7 +7,7 @@ class MelisMarketingIconHelper extends AbstractMelisIconsHelper
     const BACKGROUND = '#70469c';
 
     /** @var const FOREGROUND */
-    const FOREGROUND = '#8965ad';
+    const FOREGROUND = '#ffffff';
     /**
      * @param int $width
      * @param int $height
