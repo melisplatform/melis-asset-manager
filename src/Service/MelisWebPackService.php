@@ -6,6 +6,7 @@ use MelisAssetManager\View\Helper\MelisHeadPluginHelper;
 use Laminas\ServiceManager\ServiceManager;
 use MelisCore\Controller\ModulesController;
 use MelisCore\Service\MelisServiceManager;
+use Laminas\Session\Container;
 
 class MelisWebPackService extends MelisServiceManager
 {
@@ -135,8 +136,10 @@ class MelisWebPackService extends MelisServiceManager
                 }
 
                 if (file_exists($bundleFolder . '/' . ModulesController::BUNDLE_FOLDER_NAME . '/js/bundle-all.js')) {
+                    $container = new Container('meliscore');
+                    $locale = $container['melis-lang-locale'];
                     $assets['js'] = [];
-                    $assets['js'][] = '/melis/get-translations';
+                    $assets['js'][] = '/melis/get-translations?locale=' . $locale;
                     $assets['js'][] = '/melis/get-js-bundles'.$time;
                 }
             }
