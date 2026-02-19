@@ -143,7 +143,21 @@ class MelisModulesService extends MelisServiceManager
 
         return $modules;
     }
-
+    
+    /**
+     * Returns all the modules inside AIModules folder
+     * These are the modules created by Melis AI Tool Creator
+     * @return array
+     */
+    public function getAIModules()
+    {
+        $aiModules = $_SERVER['DOCUMENT_ROOT'] . '/../module/AIModules';
+        $modules = [];
+        if ($this->checkDir($aiModules)) {
+            $modules = $this->getDir($aiModules);
+        }
+        return $modules;
+    }
     /**
      * This will check if directory exists and it's a valid directory
      *
@@ -223,7 +237,8 @@ class MelisModulesService extends MelisServiceManager
      */
     public function getAllModules()
     {
-        return array_merge($this->getUserModules(), $this->getVendorModules());
+        //return array_merge($this->getUserModules(), $this->getVendorModules());
+        return array_merge($this->getUserModules(), $this->getVendorModules(), $this->getAIModules());
     }
 
     /**
@@ -398,7 +413,34 @@ class MelisModulesService extends MelisServiceManager
         if ($path == '') {
             $path = $this->getComposerModulePath($moduleName, $returnFullPath);
         }
+    
+        if ($path == '') {
+            $path = $this->getAIModulePath($moduleName, $returnFullPath);
+        }
+        return $path;
+    }
 
+    /** 
+     * Returns the full path of the module inside AIModules folder
+     *
+     * @param $moduleName
+     * @param bool $returnFullPath
+     *
+     * @return string
+     */
+    public function getAIModulePath($moduleName, $returnFullPath = true)
+    {
+        $path = '';
+        $aiModules = $_SERVER['DOCUMENT_ROOT'] . '/../';
+        if (in_array($moduleName, $this->getAIModules())) {
+            if ($this->checkDir($aiModules . 'module/AIModules/' . $moduleName)) {
+                if (!$returnFullPath) {
+                    $path = '/module/AIModules/' . $moduleName;
+                } else {
+                    $path = $aiModules . 'module/AIModules/' . $moduleName;
+                }
+            }
+        }
         return $path;
     }
 
