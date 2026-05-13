@@ -237,7 +237,6 @@ class MelisModulesService extends MelisServiceManager
      */
     public function getAllModules()
     {
-        //return array_merge($this->getUserModules(), $this->getVendorModules());
         return array_merge($this->getUserModules(), $this->getVendorModules(), $this->getAIModules());
     }
 
