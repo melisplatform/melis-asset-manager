@@ -149,7 +149,7 @@ class Module
         // First check if asset in main public folder
         $pathFile = $_SERVER['DOCUMENT_ROOT'] . $UriWithoutParams;
         if (is_file($pathFile) && $this->checkFileInFolder($pathFile, $_SERVER['DOCUMENT_ROOT']))
-            $this->sendDocument($pathFile, $UriParams);
+            $this->sendDocument($pathFile, $UriParams, $sm);
         else
         {
             // testing module public folder second
@@ -182,7 +182,7 @@ class Module
                         if ($pathFile != '')
                         {
                             if (is_file($pathFile) && $this->checkFileInFolder($pathFile, $path . '/public/'))
-                                $this->sendDocument($pathFile, $UriParams);
+                                $this->sendDocument($pathFile, $UriParams, $sm);
                         }
                     }
                 }
@@ -203,12 +203,22 @@ class Module
         return 'text/plain';
     }
     
-    public function sendDocument($pathFile, $UriParams)
+    public function sendDocument($pathFile, $UriParams, $sm = null)
     {
         $mime   = $this->getMimeType($pathFile);
 
         // if php file, we need to eval
         if ($mime == 'application/x-httpd-php') {
+            // SECURITY: never execute a served PHP file for an anonymous request. The bundled PHP
+            // helpers under module public/ (TinyMCE, file manager, moxiemanager, …) are only ever
+            // used from the authenticated back-office; executing arbitrary public/*.php without a
+            // session is a remote-code-execution vector. Require a valid Melis session. (Static
+            // assets — the else branch below — stay public, as they must load before login.)
+            if (!$this->isRequestAuthenticated($sm)) {
+                header('HTTP/1.0 403 Forbidden');
+                die;
+            }
+
             header('HTTP/1.0 200 OK');
             header("Content-Type: text/html; charset=UTF-8" . $mime);
 
@@ -261,6 +271,27 @@ class Module
                 ],
             ],
         ];
+    }
+
+    /**
+     * SECURITY guard for PHP execution via the asset handler: true only when the current request
+     * carries a valid authenticated Melis session. The session is started here if needed (this
+     * handler runs early in bootstrap and dies before MelisCore's initSession); we only READ the
+     * existing session cookie, and only for the .php branch, so static-asset serving is untouched.
+     */
+    protected function isRequestAuthenticated($sm): bool
+    {
+        if ($sm === null) {
+            return false;
+        }
+        try {
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                @session_start();
+            }
+            return (bool) $sm->get('MelisCoreAuth')->hasIdentity();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
      /*checks if the file is inside the given folder*/
