@@ -234,7 +234,7 @@ class MelisWebPackService extends MelisServiceManager
                     // check if the build directory for CSS exists
                     $cssBuildPath = $modulePath . $ds . $buildPath . $ds . 'css';
                     if (!file_exists($cssBuildPath)) {
-                        @mkdir($cssBuildPath, 0777, true);
+                        @mkdir($cssBuildPath, 0755, true);
                     }
 
                     // make sure that the file has the right access
@@ -263,7 +263,7 @@ class MelisWebPackService extends MelisServiceManager
                     // check if the build directory for JS exists
                     $jsBuildPath = $modulePath . $ds . $buildPath . $ds . 'js';
                     if (!file_exists($jsBuildPath)) {
-                        @mkdir($jsBuildPath, 0777, true);
+                        @mkdir($jsBuildPath, 0755, true);
                     }
 
                     // make sure that the file has the right access
