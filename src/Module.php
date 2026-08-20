@@ -278,20 +278,46 @@ class Module
      * carries a valid authenticated Melis session. The session is started here if needed (this
      * handler runs early in bootstrap and dies before MelisCore's initSession); we only READ the
      * existing session cookie, and only for the .php branch, so static-asset serving is untouched.
+     *
+     * MelisCoreAuth is NOT always available here: MelisModuleManager::getModules() only boots the
+     * back-office module set when the first URI segment is 'melis' or a BO module name. An asset
+     * URL of a SITE module (e.g. /MelisDemoCms/miniTemplatesTinyMce/x.phtml, requested by the
+     * TinyMCE mini-template picker) boots a stripped module set WITHOUT MelisCore, so the service
+     * is undefined and asking for it threw -> every mini-template 403'd for logged-in users too.
+     * Hence the session fallback below, which reads exactly what hasIdentity() reads: the
+     * 'Melis_Auth' container written by Laminas\Authentication\Storage\Session (see
+     * MelisCoreAuthService::setServiceManager()).
      */
     protected function isRequestAuthenticated($sm): bool
     {
-        if ($sm === null) {
-            return false;
-        }
-        try {
-            if (session_status() !== PHP_SESSION_ACTIVE) {
-                @session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            // No session cookie at all -> anonymous for sure, and don't create an empty session.
+            if (empty($_COOKIE[session_name()])) {
+                return false;
             }
-            return (bool) $sm->get('MelisCoreAuth')->hasIdentity();
-        } catch (\Throwable $e) {
-            return false;
+            @session_start();
         }
+
+        // Source of truth when MelisCore is part of the booted module set.
+        if ($sm !== null) {
+            try {
+                if ($sm->has('MelisCoreAuth')) {
+                    return (bool) $sm->get('MelisCoreAuth')->hasIdentity();
+                }
+            } catch (\Throwable $e) {
+                // fall through to the session probe
+            }
+        }
+
+        $authNamespace = $_SESSION['Melis_Auth'] ?? null;
+        if (is_array($authNamespace)) {
+            return !empty($authNamespace['storage']);
+        }
+        if ($authNamespace instanceof \ArrayAccess) {
+            return isset($authNamespace['storage']) && !empty($authNamespace['storage']);
+        }
+
+        return false;
     }
 
      /*checks if the file is inside the given folder*/
