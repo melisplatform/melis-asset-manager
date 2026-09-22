@@ -188,8 +188,74 @@ class Module
                 }
             }
         }
+
+        // SECURITY (DEKRA audit, action #20 — DoS on extension paths): reaching here means nothing
+        // above was served (sendDocument() dies when it serves). If the request path denotes a FILE
+        // — it carries an extension that can only mean a file, never a CMS page or an MVC route — and
+        // that file exists nowhere we could serve it from, answer 404 HERE, at bootstrap, and exit.
+        // Otherwise such a request fell through to the full front-page 404 render (~45 s under load in
+        // the audit; the MVC listeners' own short-circuit excludes ".php"); a handful of them
+        // saturated the FPM pool. Extensionless paths (CMS pages -> the normal 404) and the app's own
+        // dynamically generated file-extension routes are left untouched.
+        $this->declineNonExistentAssetPath($UriWithoutParams);
     }
-    
+
+    /**
+     * 404-and-exit for a request whose path is a FILE that exists nowhere servable — called only
+     * after displayFile() has failed to serve it from the webroot or any module public/ folder.
+     *
+     * Scoped to extensions that can ONLY mean a file (js/css/images/fonts/media/archives/php); this
+     * deliberately excludes txt/xml/html, which the platform serves dynamically (robots.txt,
+     * sitemap.xml, sitemap.html). The back-office prefixes (/melis/*, /melis-react/*) and MelisFront's
+     * two generated stylesheets are dynamic routes that carry an extension, so they are exempted too.
+     */
+    protected function declineNonExistentAssetPath($uriPath)
+    {
+        $decoded = rawurldecode((string) $uriPath);
+        $ext = strtolower(pathinfo($decoded, PATHINFO_EXTENSION));
+        if ($ext === '') {
+            return; // a page (or route) -> let it go to the normal 404
+        }
+
+        static $fileOnlyExt = [
+            // scripts / styles / source maps
+            'js' => 1, 'mjs' => 1, 'css' => 1, 'map' => 1, 'less' => 1, 'scss' => 1,
+            // images
+            'png' => 1, 'jpg' => 1, 'jpeg' => 1, 'gif' => 1, 'svg' => 1, 'svgz' => 1, 'ico' => 1,
+            'webp' => 1, 'avif' => 1, 'bmp' => 1, 'tif' => 1, 'tiff' => 1,
+            // fonts
+            'woff' => 1, 'woff2' => 1, 'ttf' => 1, 'otf' => 1, 'eot' => 1,
+            // media
+            'mp3' => 1, 'mp4' => 1, 'webm' => 1, 'ogg' => 1, 'oga' => 1, 'ogv' => 1, 'wav' => 1,
+            'flac' => 1, 'avi' => 1, 'mov' => 1, 'mkv' => 1, 'wmv' => 1,
+            // documents / archives
+            'pdf' => 1, 'zip' => 1, '7z' => 1, 'rar' => 1, 'gz' => 1, 'tgz' => 1, 'tar' => 1,
+            'doc' => 1, 'docx' => 1, 'xls' => 1, 'xlsx' => 1, 'ppt' => 1, 'pptx' => 1, 'odt' => 1, 'ods' => 1,
+            // server-side scripts — the audited case: an unmatched "/x.php" must not cost a full render
+            'php' => 1, 'php3' => 1, 'php4' => 1, 'php5' => 1, 'phps' => 1, 'pht' => 1, 'phtml' => 1,
+        ];
+        if (!isset($fileOnlyExt[$ext])) {
+            return;
+        }
+
+        // Dynamically generated routes that carry a file extension -> let the application answer.
+        $first = explode('/', ltrim($decoded, '/'), 2)[0];
+        if ($first === 'melis' || $first === 'melis-react') {
+            return;
+        }
+        static $appServedPaths = ['/css/plugin-width.css' => 1, '/css/page-plugin-width.css' => 1];
+        if (isset($appServedPaths[$decoded])) {
+            return;
+        }
+
+        header('HTTP/1.1 404 Not Found');
+        header('Content-Type: text/plain; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store');
+        echo "Not Found\n";
+        exit;
+    }
+
     public function getMimeType($filename)
     {
         $mimeConfig = require __DIR__ . $this->mimePathFile;
