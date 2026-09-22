@@ -226,7 +226,13 @@ class Module
             $fileName = $folderPath[count($folderPath) - 1];
             unset($folderPath[count($folderPath) - 1]);
             $folderPath = implode('/', $folderPath);
-            
+
+            // The file about to run (MoxieManager's api.php, the TinyMCE helpers...) executes
+            // outside the MVC stack and has no way to reach the platform's services. Exposing
+            // the service manager lets it write into the audit trail - see the MelisAudit
+            // plugin of MoxieManager (DEKRA item 21.0).
+            $GLOBALS['melisServiceManager'] = $sm;
+
             eval ( ' chdir("' . $folderPath . '"); require "' . $fileName . '";' );
         } else {
 
