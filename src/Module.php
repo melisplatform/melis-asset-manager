@@ -248,6 +248,19 @@ class Module
             return;
         }
 
+        // Never let a junk 404 create a PHP session. Today this module bootstraps BEFORE MelisCore's
+        // initSession(), so no session exists here — but that is only module load order. Should a
+        // session have been started for an anonymous request (no session cookie sent, nothing
+        // authenticated), discard it so no session file is written and drop the PHPSESSID cookie
+        // that session_start() has already queued; a flood of these must not fill the session store.
+        if (session_status() === PHP_SESSION_ACTIVE
+            && empty($_COOKIE[session_name()])
+            && empty($_SESSION['Melis_Auth'])) {
+            $_SESSION = [];
+            session_abort();
+            header_remove('Set-Cookie');
+        }
+
         header('HTTP/1.1 404 Not Found');
         header('Content-Type: text/plain; charset=utf-8');
         header('X-Content-Type-Options: nosniff');
