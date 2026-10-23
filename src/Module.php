@@ -53,7 +53,6 @@ class Module
         $modulesService     = $sm->get('MelisAssetManagerModulesService');
         $assetConfigFolder  = $_SERVER['DOCUMENT_ROOT'] . '/../config';
         $sitesModulesFolder = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites';
-        $allModules         = $modulesService->getAllModules();
 
         $modulePathFile = $assetConfigFolder . $this->modulePathFile;
 
@@ -79,7 +78,9 @@ class Module
 
             $modulesList  = array();
             $sitesModules = $modulesService->getSitesModules();
-            
+            // PERF (audit AM-M6): only enumerate every module when we actually (re)generate the file.
+            $allModules   = $modulesService->getAllModules();
+
             // BO Activated Modules
             foreach ($allModules as $moduleName)
             {
@@ -96,31 +97,21 @@ class Module
                 $modulesList[$moduleName] = $path;
             }
             
-            try 
+            try
             {
-                $fd = fopen($modulePathFile, 'w');
-                if ($fd)
+                // SECURITY (audit AM-M4): generate the file with var_export() — it escapes quotes in
+                // module names/paths, whereas the old raw string interpolation let a name/path
+                // containing a quote inject PHP into a file that is require'd on every request.
+                // SECURITY (audit AM-M2): keep it 0644 — world-writable + included each request is a
+                // local privilege-escalation / RCE vector; the writer and reader are the same user.
+                $written = file_put_contents(
+                    $modulePathFile,
+                    "<?php\n\nreturn " . var_export($modulesList, true) . ";\n"
+                );
+                if ($written !== false)
                 {
-                    $modulesPathsArray = "<?php \n\n";
-                    $modulesPathsArray .= "\treturn array( \n";
-        
-                    $pathFile = '';
-                    foreach ($modulesList as $moduleName => $modulePath)
-                    {
-                        $modulesPathsArray .= "\t\t'$moduleName' => '$modulePath', \n";
-                    }
-                    $modulesPathsArray .= "\t); \n";
-                    
-                    fwrite($fd, $modulesPathsArray);
-                    fclose($fd);
-                    chmod($modulePathFile, 0777);
-                    
+                    @chmod($modulePathFile, 0644);
                     $this->displayFile($sm);
-                }
-                else
-                {
-                    /*echo "Error generating file $modulePathFile : check rights";
-                    die;*/
                 }
             }
             catch (\Exception $e)
@@ -233,6 +224,12 @@ class Module
             'doc' => 1, 'docx' => 1, 'xls' => 1, 'xlsx' => 1, 'ppt' => 1, 'pptx' => 1, 'odt' => 1, 'ods' => 1,
             // server-side scripts — the audited case: an unmatched "/x.php" must not cost a full render
             'php' => 1, 'php3' => 1, 'php4' => 1, 'php5' => 1, 'phps' => 1, 'pht' => 1, 'phtml' => 1,
+            // SECURITY (audit AM-M1): the extensions scanners hammer for — none are served
+            // dynamically by the platform, so a junk hit on them must 404 cheaply here too,
+            // instead of falling through to the full front render (and leaving a session behind).
+            'json' => 1, 'webmanifest' => 1, 'wasm' => 1, 'ts' => 1, 'tsx' => 1, 'jsx' => 1,
+            'mts' => 1, 'cts' => 1, 'env' => 1, 'yml' => 1, 'yaml' => 1, 'ini' => 1, 'conf' => 1,
+            'lock' => 1, 'bak' => 1, 'sql' => 1, 'sh' => 1, 'bat' => 1, 'log' => 1,
         ];
         if (!isset($fileOnlyExt[$ext])) {
             return;
@@ -248,18 +245,8 @@ class Module
             return;
         }
 
-        // Never let a junk 404 create a PHP session. Today this module bootstraps BEFORE MelisCore's
-        // initSession(), so no session exists here — but that is only module load order. Should a
-        // session have been started for an anonymous request (no session cookie sent, nothing
-        // authenticated), discard it so no session file is written and drop the PHPSESSID cookie
-        // that session_start() has already queued; a flood of these must not fill the session store.
-        if (session_status() === PHP_SESSION_ACTIVE
-            && empty($_COOKIE[session_name()])
-            && empty($_SESSION['Melis_Auth'])) {
-            $_SESSION = [];
-            session_abort();
-            header_remove('Set-Cookie');
-        }
+        // Never let a junk 404 create a PHP session (flood -> session-store fill).
+        $this->abortAnonymousSession();
 
         header('HTTP/1.1 404 Not Found');
         header('Content-Type: text/plain; charset=utf-8');
@@ -278,10 +265,12 @@ class Module
         if (isset($mimeConfig['mime'][$extension])) {
             return $mimeConfig['mime'][$extension];
         }
-    
-        return 'text/plain';
+
+        // SECURITY (audit AM-B1): unknown extension -> octet-stream (download), never text/plain,
+        // which a sniffing browser could reinterpret as HTML.
+        return 'application/octet-stream';
     }
-    
+
     public function sendDocument($pathFile, $UriParams, $sm = null)
     {
         $mime   = $this->getMimeType($pathFile);
@@ -299,7 +288,7 @@ class Module
             }
 
             header('HTTP/1.0 200 OK');
-            header("Content-Type: text/html; charset=UTF-8" . $mime);
+            header('Content-Type: text/html; charset=UTF-8');
 
             $folderPath = explode('/', $pathFile);
             $fileName = $folderPath[count($folderPath) - 1];
@@ -312,25 +301,77 @@ class Module
             // plugin of MoxieManager (DEKRA item 21.0).
             $GLOBALS['melisServiceManager'] = $sm;
 
-            eval ( ' chdir("' . $folderPath . '"); require "' . $fileName . '";' );
-        } else {
-
-            $content = file_get_contents($pathFile);
-
-
-            header('HTTP/1.0 200 OK');
-            header("Content-Type: " . $mime);
-
-            $seconds_to_cache = 60 * 60 * 24; // 24hrs
-            $ts = gmdate("D, d M Y H:i:s", time() + $seconds_to_cache) . " GMT";
-            header("Expires: $ts");
-            header("Pragma: cache");
-            header("Cache-Control: max-age=$seconds_to_cache");
-
-            print $content;
+            // SECURITY (audit AM-B6): run the file directly — do NOT build an eval() string by
+            // concatenating the (on-disk) path, a filename containing a double quote would break out.
+            chdir($folderPath);
+            require $fileName;
+            die;
         }
 
+        // --- static asset branch ---
+        // SECURITY (audit AM-M1): an anonymous asset hit must not leave a PHP session behind.
+        $this->abortAnonymousSession();
+
+        // SECURITY (audit AM-H2/AM-B1): assets come from vendor module public/ folders. Stop MIME
+        // sniffing, add a charset to text types, and never render a potentially active type
+        // (svg/html/xml) inline — serve it as an attachment so it can't execute in our origin.
+        header('X-Content-Type-Options: nosniff');
+
+        if (strpos($mime, 'text/') === 0 && stripos($mime, 'charset') === false) {
+            $mime .= '; charset=utf-8';
+        }
+
+        static $inlineUnsafe = [
+            'image/svg+xml' => 1, 'text/html' => 1, 'application/xhtml+xml' => 1,
+            'application/xml' => 1, 'text/xml' => 1,
+        ];
+        $baseMime = trim(explode(';', $mime)[0]);
+        if (isset($inlineUnsafe[$baseMime])) {
+            header('Content-Disposition: attachment; filename="' . basename($pathFile) . '"');
+        }
+
+        // SECURITY (audit AM-M5): honour conditional requests (304) and stream with readfile()
+        // instead of loading the whole file into memory; advertise Content-Length / Last-Modified.
+        $lastModified = @filemtime($pathFile);
+        $ifModifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null;
+        if ($lastModified && $ifModifiedSince && @strtotime($ifModifiedSince) >= $lastModified) {
+            header('HTTP/1.1 304 Not Modified');
+            die;
+        }
+
+        header('HTTP/1.1 200 OK');
+        header('Content-Type: ' . $mime);
+        if ($lastModified) {
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT');
+        }
+        $size = @filesize($pathFile);
+        if ($size !== false) {
+            header('Content-Length: ' . $size);
+        }
+        header('Accept-Ranges: bytes');
+
+        $seconds_to_cache = 60 * 60 * 24; // 24hrs
+        header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $seconds_to_cache) . ' GMT');
+        header('Cache-Control: public, max-age=' . $seconds_to_cache);
+
+        readfile($pathFile);
         die;
+    }
+
+    /**
+     * SECURITY (audit AM-M1): discard a PHP session that was opened for a cookie-less,
+     * unauthenticated request so no session file is written and the queued Set-Cookie is dropped
+     * — a flood of anonymous asset requests must not fill the session store.
+     */
+    protected function abortAnonymousSession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE
+            && empty($_COOKIE[session_name()])
+            && empty($_SESSION['Melis_Auth'])) {
+            $_SESSION = [];
+            session_abort();
+            header_remove('Set-Cookie');
+        }
     }
     
     public function getConfig()
@@ -380,6 +421,9 @@ class Module
             if (empty($_COOKIE[session_name()])) {
                 return false;
             }
+            // SECURITY (audit AM-M1): strict mode so a forged/arbitrary PHPSESSID replayed on each
+            // request is NOT adopted (which would write a sess_<id> file per hit = store flooding).
+            @ini_set('session.use_strict_mode', '1');
             @session_start();
         }
 
@@ -407,16 +451,17 @@ class Module
 
      /*checks if the file is inside the given folder*/
     protected function checkFileInFolder($file, $folder)
-    {       
-        $path = realpath($file);        
-        if ($path !== false) {
-            if (strpos($path, realpath($folder)) !== 0) {                   
-                throw new \Exception('Requested resource is outside of ' . $folder);
-            } else {              
-                return true;
-            }
-        } else {                   
+    {
+        $path = realpath($file);
+        $base = realpath($folder);
+        if ($path === false || $base === false) {
             return false;
         }
+        // SECURITY (audit AM-M3/AM-B3): compare against the folder WITH a trailing separator so a
+        // sibling dir sharing the prefix (e.g. public_old/) can't pass; and return false on a
+        // traversal attempt instead of throwing — an uncaught bootstrap exception turned every
+        // "/Module/../x" probe into a 500 (path disclosure) instead of a clean 404.
+        $base = rtrim($base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        return strpos($path, $base) === 0;
     }
 }

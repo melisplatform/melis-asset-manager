@@ -637,8 +637,9 @@ class MelisModulesService extends MelisServiceManager
                     unlink($pathToStore . '/' . $fileName);
                     // rename the module loader tmp file into module.load.php
                     rename($pathToStore . '/' . $tmpFileName, $pathToStore . '/' . $fileName);
-                    // Adding permission access
-                    chmod($pathToStore . '/' . $fileName, 0777);
+                    // SECURITY (audit AM-M2): 0644, not 0777 — this file is included on every
+                    // request; world-writable is a local privilege-escalation / RCE vector.
+                    chmod($pathToStore . '/' . $fileName, 0644);
                     // if everything went well
                     return true;
                 }

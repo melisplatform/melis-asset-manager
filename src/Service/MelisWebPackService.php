@@ -236,9 +236,7 @@ class MelisWebPackService extends MelisServiceManager
                     if (!file_exists($cssBuildPath)) {
                         @mkdir($cssBuildPath, 0755, true);
                     }
-
-                    // make sure that the file has the right access
-                    @chmod($cssBuildPath, 0777);
+                    // SECURITY (audit AM-M2): no world-writable 0777 — mkdir 0755 is enough.
 
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset)) {
@@ -265,9 +263,7 @@ class MelisWebPackService extends MelisServiceManager
                     if (!file_exists($jsBuildPath)) {
                         @mkdir($jsBuildPath, 0755, true);
                     }
-
-                    // make sure that the file has the right access
-                    @chmod($jsBuildPath, 0777);
+                    // SECURITY (audit AM-M2): no world-writable 0777 — mkdir 0755 is enough.
 
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset)) {
@@ -301,11 +297,12 @@ class MelisWebPackService extends MelisServiceManager
         $webpack = $this->getWebPackMixFile();
 
         file_put_contents($webpack, $mixScript);
-        @chmod($webpack, 0777);
+        // SECURITY (audit AM-M2): 0644, not world-writable (webpack.mix.js is executed by node on
+        // the developer's machine — a 0777 file is an injection point in the build chain).
+        @chmod($webpack, 0644);
 
-        $runWebPackPath = str_replace('public/', '', $webPackPath);
-
-        return "Webpack has been generated in $webpack\r\nRun \"npm run development\" or \"npm run production\" (if you want your assets to be minified) in $runWebPackPath to generate your bundled assets.";
+        // SECURITY (audit AM-H1): do not leak absolute server paths in the HTTP response.
+        return "Webpack mix file has been generated. Run \"npm run development\" or \"npm run production\" (minified) from the project root to build the bundled assets.";
 
     }
 
