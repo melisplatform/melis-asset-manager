@@ -180,14 +180,12 @@ class Module
             }
         }
 
-        // SECURITY (DEKRA audit, action #20 — DoS on extension paths): reaching here means nothing
-        // above was served (sendDocument() dies when it serves). If the request path denotes a FILE
-        // — it carries an extension that can only mean a file, never a CMS page or an MVC route — and
-        // that file exists nowhere we could serve it from, answer 404 HERE, at bootstrap, and exit.
-        // Otherwise such a request fell through to the full front-page 404 render (~45 s under load in
-        // the audit; the MVC listeners' own short-circuit excludes ".php"); a handful of them
-        // saturated the FPM pool. Extensionless paths (CMS pages -> the normal 404) and the app's own
-        // dynamically generated file-extension routes are left untouched.
+        // Reaching here means nothing above was served (sendDocument() dies when it serves). If the
+        // request path denotes a FILE — it carries an extension that can only mean a file, never a
+        // CMS page or an MVC route — and that file exists nowhere we could serve it from, answer 404
+        // HERE, at bootstrap, and exit, instead of a full front-page 404 render. Extensionless paths
+        // (CMS pages -> the normal 404) and the app's own dynamically generated file-extension routes
+        // are left untouched.
         $this->declineNonExistentAssetPath($UriWithoutParams);
     }
 
@@ -222,7 +220,7 @@ class Module
             // documents / archives
             'pdf' => 1, 'zip' => 1, '7z' => 1, 'rar' => 1, 'gz' => 1, 'tgz' => 1, 'tar' => 1,
             'doc' => 1, 'docx' => 1, 'xls' => 1, 'xlsx' => 1, 'ppt' => 1, 'pptx' => 1, 'odt' => 1, 'ods' => 1,
-            // server-side scripts — the audited case: an unmatched "/x.php" must not cost a full render
+            // server-side scripts: an unmatched "/x.php" must not cost a full render
             'php' => 1, 'php3' => 1, 'php4' => 1, 'php5' => 1, 'phps' => 1, 'pht' => 1, 'phtml' => 1,
             // SECURITY (audit AM-M1): the extensions scanners hammer for — none are served
             // dynamically by the platform, so a junk hit on them must 404 cheaply here too,
@@ -277,11 +275,10 @@ class Module
 
         // if php file, we need to eval
         if ($mime == 'application/x-httpd-php') {
-            // SECURITY: never execute a served PHP file for an anonymous request. The bundled PHP
-            // helpers under module public/ (TinyMCE, file manager, moxiemanager, …) are only ever
-            // used from the authenticated back-office; executing arbitrary public/*.php without a
-            // session is a remote-code-execution vector. Require a valid Melis session. (Static
-            // assets — the else branch below — stay public, as they must load before login.)
+            // Served PHP files run only for an authenticated request: the bundled PHP helpers under
+            // module public/ (TinyMCE, file manager, moxiemanager, …) are only ever used from the
+            // back-office. (Static assets — the else branch below — stay public, as they must load
+            // before login.)
             if (!$this->isRequestAuthenticated($sm)) {
                 header('HTTP/1.0 403 Forbidden');
                 die;
@@ -298,7 +295,7 @@ class Module
             // The file about to run (MoxieManager's api.php, the TinyMCE helpers...) executes
             // outside the MVC stack and has no way to reach the platform's services. Exposing
             // the service manager lets it write into the audit trail - see the MelisAudit
-            // plugin of MoxieManager (DEKRA item 21.0).
+            // plugin of MoxieManager.
             $GLOBALS['melisServiceManager'] = $sm;
 
             // SECURITY (audit AM-B6): run the file directly — do NOT build an eval() string by
