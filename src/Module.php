@@ -78,7 +78,7 @@ class Module
 
             $modulesList  = array();
             $sitesModules = $modulesService->getSitesModules();
-            // PERF (audit AM-M6): only enumerate every module when we actually (re)generate the file.
+            // Only enumerate every module when we actually (re)generate the file.
             $allModules   = $modulesService->getAllModules();
 
             // BO Activated Modules
@@ -99,11 +99,8 @@ class Module
             
             try
             {
-                // SECURITY (audit AM-M4): generate the file with var_export() — it escapes quotes in
-                // module names/paths, whereas the old raw string interpolation let a name/path
-                // containing a quote inject PHP into a file that is require'd on every request.
-                // SECURITY (audit AM-M2): keep it 0644 — world-writable + included each request is a
-                // local privilege-escalation / RCE vector; the writer and reader are the same user.
+                // The file is generated with var_export(), which escapes module names/paths, and
+                // kept 0644 (the writer and reader are the same user); it is require'd on every request.
                 $written = file_put_contents(
                     $modulePathFile,
                     "<?php\n\nreturn " . var_export($modulesList, true) . ";\n"
@@ -222,9 +219,8 @@ class Module
             'doc' => 1, 'docx' => 1, 'xls' => 1, 'xlsx' => 1, 'ppt' => 1, 'pptx' => 1, 'odt' => 1, 'ods' => 1,
             // server-side scripts: an unmatched "/x.php" must not cost a full render
             'php' => 1, 'php3' => 1, 'php4' => 1, 'php5' => 1, 'phps' => 1, 'pht' => 1, 'phtml' => 1,
-            // SECURITY (audit AM-M1): the extensions scanners hammer for — none are served
-            // dynamically by the platform, so a junk hit on them must 404 cheaply here too,
-            // instead of falling through to the full front render (and leaving a session behind).
+            // other file-only extensions — none are served dynamically by the platform, so they
+            // 404 here too.
             'json' => 1, 'webmanifest' => 1, 'wasm' => 1, 'ts' => 1, 'tsx' => 1, 'jsx' => 1,
             'mts' => 1, 'cts' => 1, 'env' => 1, 'yml' => 1, 'yaml' => 1, 'ini' => 1, 'conf' => 1,
             'lock' => 1, 'bak' => 1, 'sql' => 1, 'sh' => 1, 'bat' => 1, 'log' => 1,
@@ -243,7 +239,7 @@ class Module
             return;
         }
 
-        // Never let a junk 404 create a PHP session (flood -> session-store fill).
+        // A 404 here does not create a PHP session.
         $this->abortAnonymousSession();
 
         header('HTTP/1.1 404 Not Found');
@@ -264,8 +260,7 @@ class Module
             return $mimeConfig['mime'][$extension];
         }
 
-        // SECURITY (audit AM-B1): unknown extension -> octet-stream (download), never text/plain,
-        // which a sniffing browser could reinterpret as HTML.
+        // Unknown extension -> octet-stream (download).
         return 'application/octet-stream';
     }
 
@@ -298,20 +293,18 @@ class Module
             // plugin of MoxieManager.
             $GLOBALS['melisServiceManager'] = $sm;
 
-            // SECURITY (audit AM-B6): run the file directly — do NOT build an eval() string by
-            // concatenating the (on-disk) path, a filename containing a double quote would break out.
+            // Run the file directly from its folder.
             chdir($folderPath);
             require $fileName;
             die;
         }
 
         // --- static asset branch ---
-        // SECURITY (audit AM-M1): an anonymous asset hit must not leave a PHP session behind.
+        // An anonymous asset hit does not leave a PHP session behind.
         $this->abortAnonymousSession();
 
-        // SECURITY (audit AM-H2/AM-B1): assets come from vendor module public/ folders. Stop MIME
-        // sniffing, add a charset to text types, and never render a potentially active type
-        // (svg/html/xml) inline — serve it as an attachment so it can't execute in our origin.
+        // Assets come from vendor module public/ folders: nosniff, a charset on text types, and
+        // svg/html/xml types served as an attachment.
         header('X-Content-Type-Options: nosniff');
 
         if (strpos($mime, 'text/') === 0 && stripos($mime, 'charset') === false) {
@@ -327,7 +320,7 @@ class Module
             header('Content-Disposition: attachment; filename="' . basename($pathFile) . '"');
         }
 
-        // SECURITY (audit AM-M5): honour conditional requests (304) and stream with readfile()
+        // Honour conditional requests (304) and stream with readfile()
         // instead of loading the whole file into memory; advertise Content-Length / Last-Modified.
         $lastModified = @filemtime($pathFile);
         $ifModifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null;
@@ -356,9 +349,8 @@ class Module
     }
 
     /**
-     * SECURITY (audit AM-M1): discard a PHP session that was opened for a cookie-less,
-     * unauthenticated request so no session file is written and the queued Set-Cookie is dropped
-     * — a flood of anonymous asset requests must not fill the session store.
+     * Discard a PHP session that was opened for a cookie-less, unauthenticated request so no
+     * session file is written and the queued Set-Cookie is dropped.
      */
     protected function abortAnonymousSession(): void
     {
@@ -397,7 +389,7 @@ class Module
     }
 
     /**
-     * SECURITY guard for PHP execution via the asset handler: true only when the current request
+     * Guard for PHP execution via the asset handler: true only when the current request
      * carries a valid authenticated Melis session. The session is started here if needed (this
      * handler runs early in bootstrap and dies before MelisCore's initSession); we only READ the
      * existing session cookie, and only for the .php branch, so static-asset serving is untouched.
@@ -418,8 +410,7 @@ class Module
             if (empty($_COOKIE[session_name()])) {
                 return false;
             }
-            // SECURITY (audit AM-M1): strict mode so a forged/arbitrary PHPSESSID replayed on each
-            // request is NOT adopted (which would write a sess_<id> file per hit = store flooding).
+            // Strict mode: only session ids issued by the server are adopted.
             @ini_set('session.use_strict_mode', '1');
             @session_start();
         }
@@ -454,10 +445,8 @@ class Module
         if ($path === false || $base === false) {
             return false;
         }
-        // SECURITY (audit AM-M3/AM-B3): compare against the folder WITH a trailing separator so a
-        // sibling dir sharing the prefix (e.g. public_old/) can't pass; and return false on a
-        // traversal attempt instead of throwing — an uncaught bootstrap exception turned every
-        // "/Module/../x" probe into a 500 (path disclosure) instead of a clean 404.
+        // Compare against the folder WITH a trailing separator so a sibling dir sharing the
+        // prefix (e.g. public_old/) doesn't match; a path outside the folder returns false.
         $base = rtrim($base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         return strpos($path, $base) === 0;
     }

@@ -236,7 +236,7 @@ class MelisWebPackService extends MelisServiceManager
                     if (!file_exists($cssBuildPath)) {
                         @mkdir($cssBuildPath, 0755, true);
                     }
-                    // SECURITY (audit AM-M2): no world-writable 0777 — mkdir 0755 is enough.
+                    // Build folder created 0755.
 
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset)) {
@@ -263,7 +263,7 @@ class MelisWebPackService extends MelisServiceManager
                     if (!file_exists($jsBuildPath)) {
                         @mkdir($jsBuildPath, 0755, true);
                     }
-                    // SECURITY (audit AM-M2): no world-writable 0777 — mkdir 0755 is enough.
+                    // Build folder created 0755.
 
                     $modules[$module]['path'] = $modulePath;
                     if (preg_match("/$module/", $asset)) {
@@ -297,11 +297,10 @@ class MelisWebPackService extends MelisServiceManager
         $webpack = $this->getWebPackMixFile();
 
         file_put_contents($webpack, $mixScript);
-        // SECURITY (audit AM-M2): 0644, not world-writable (webpack.mix.js is executed by node on
-        // the developer's machine — a 0777 file is an injection point in the build chain).
+        // 0644 (webpack.mix.js is executed by node on the developer's machine).
         @chmod($webpack, 0644);
 
-        // SECURITY (audit AM-H1): do not leak absolute server paths in the HTTP response.
+        // No absolute server path in the HTTP response.
         return "Webpack mix file has been generated. Run \"npm run development\" or \"npm run production\" (minified) from the project root to build the bundled assets.";
 
     }

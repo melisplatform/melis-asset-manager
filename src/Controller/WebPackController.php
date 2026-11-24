@@ -11,9 +11,7 @@ class WebPackController extends MelisAbstractActionController
      */
     public function buildWebpackAction()
     {
-        // SECURITY (audit AM-H1): developer build tool — require an authenticated back-office
-        // session (the route was reachable anonymously via melis-core excluded_routes) and a
-        // non-safe verb (the CSRF listener only guards non-safe methods).
+        // Developer build tool: requires an authenticated back-office session and a POST.
         if (!$this->isBackOfficeUser()) {
             header('HTTP/1.0 403 Forbidden');
             die;
@@ -31,8 +29,8 @@ class WebPackController extends MelisAbstractActionController
      */
     public function viewAssetsAction()
     {
-        // SECURITY (audit AM-B5): authenticated back-office only — this dumps the full asset
-        // inventory (module list, versions) and must not be readable by every logged-in profile.
+        // Authenticated back-office only — this dumps the full asset inventory (module list,
+        // versions).
         if (!$this->isBackOfficeUser()) {
             header('HTTP/1.0 403 Forbidden');
             die;
@@ -45,7 +43,7 @@ class WebPackController extends MelisAbstractActionController
     }
 
     /**
-     * SECURITY: true only for an authenticated Melis back-office user.
+     * True only for an authenticated Melis back-office user.
      */
     private function isBackOfficeUser(): bool
     {
